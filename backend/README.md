@@ -78,6 +78,41 @@ curl -X POST http://localhost:5000/api/auth/logout \
   -H "Authorization: Bearer <accessToken>"
 ```
 
+## Users API
+
+Both endpoints require `Authorization: Bearer <accessToken>`.
+
+| Method | Endpoint         | Body |
+| ------ | ---------------- | ---- |
+| GET    | `/api/users/me`  | none |
+| PUT    | `/api/users/me`  | any subset of profile fields |
+
+Profile fields: `fullName`, `dob` (ISO date), `gender` (`male|female|other`),
+`pan` (format `ABCDE1234F`, uppercased automatically), `email`, `monthlyIncome`
+(> 0), `employmentType` (`salaried|self-employed`), `city`.
+
+`profileCompleted` becomes `true` once every field above is present. PAN must be
+unique. The response never includes `refreshTokenHash` or `fcmTokens`.
+
+```bash
+curl http://localhost:5000/api/users/me \
+  -H "Authorization: Bearer <accessToken>"
+
+curl -X PUT http://localhost:5000/api/users/me \
+  -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "fullName": "Aryan Kumar",
+    "dob": "2000-01-15",
+    "gender": "male",
+    "pan": "ABCDE1234F",
+    "email": "aryan@example.com",
+    "monthlyIncome": 50000,
+    "employmentType": "salaried",
+    "city": "Delhi"
+  }'
+```
+
 ## Structure
 
 ```

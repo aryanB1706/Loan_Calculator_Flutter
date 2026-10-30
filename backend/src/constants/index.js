@@ -14,6 +14,10 @@ const HTTP_STATUS = Object.freeze({
   SERVICE_UNAVAILABLE: 503,
 });
 
+const GENDERS = Object.freeze(['male', 'female', 'other']);
+const EMPLOYMENT_TYPES = Object.freeze(['salaried', 'self-employed']);
+const DEFAULT_CREDIT_SCORE = 650;
+
 const MESSAGES = Object.freeze({
   HEALTH_OK: 'Service is healthy',
   ROUTE_NOT_FOUND: 'Route not found',
@@ -24,6 +28,15 @@ const MESSAGES = Object.freeze({
   OTP_VERIFIED: 'OTP verified successfully',
   TOKENS_REFRESHED: 'Tokens refreshed successfully',
   LOGGED_OUT: 'Logged out successfully',
+  PROFILE_FETCHED: 'Profile fetched successfully',
+  PROFILE_UPDATED: 'Profile updated successfully',
+  USER_NOT_FOUND: 'User not found',
 });
 
-module.exports = { HTTP_STATUS, MESSAGES };
+module.exports = {
+  HTTP_STATUS,
+  MESSAGES,
+  GENDERS,
+  EMPLOYMENT_TYPES,
+  DEFAULT_CREDIT_SCORE,
+};
