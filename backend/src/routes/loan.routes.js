@@ -1,0 +1,17 @@
+const express = require('express');
+
+const { calculateLoan, checkEligibility } = require('../controllers/loan.controller');
+const authenticate = require('../middlewares/auth.middleware');
+const validate = require('../middlewares/validate');
+const { calculateLoanSchema, eligibilitySchema } = require('../validators/loan.validator');
+
+const router = express.Router();
+
+// Public: the calculator only needs the requested amount and tenure and returns
+// no personal data, so users can explore EMIs before signing in.
+router.post('/calculate', validate(calculateLoanSchema), calculateLoan);
+
+// Authenticated: eligibility is based on the signed-in user's profile.
+router.post('/eligibility', authenticate, validate(eligibilitySchema), checkEligibility);
+
+module.exports = router;

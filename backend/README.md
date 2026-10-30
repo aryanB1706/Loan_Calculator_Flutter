@@ -113,18 +113,114 @@ curl -X PUT http://localhost:5000/api/users/me \
   }'
 ```
 
+## Loans API
+
+| Method | Endpoint                 | Auth                | Body                                       |
+| ------ | ------------------------ | ------------------- | ------------------------------------------ |
+| POST   | `/api/loans/calculate`   | No                  | `{ "amount": 100000, "tenureMonths": 12 }` |
+| POST   | `/api/loans/eligibility` | Bearer access token | `{ "amount": 100000, "tenureMonths": 12 }` |
+
+`calculate` is public: it only depends on the amount and tenure, returns no
+personal data, and lets a user explore EMIs before creating an account.
+`eligibility` is authenticated because every rule is checked against the
+signed-in user's stored profile.
+
+```bash
+curl -X POST http://localhost:5000/api/loans/calculate \
+  -H "Content-Type: application/json" \
+  -d '{"amount":100000,"tenureMonths":12}'
+
+curl -X POST http://localhost:5000/api/loans/eligibility \
+  -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d '{"amount":100000,"tenureMonths":12}'
+```
+
+The calculator responds with:
+
+```json
+{
+  "emi": 8884.88,
+  "totalPayable": 106618.56,
+  "totalInterest": 6618.56,
+  "interestRate": 12
+}
+```
+
+The eligibility response always has the same shape. `reasons` is empty only
+when `eligible` is `true`:
+
+```json
+{
+  "eligible": false,
+  "maxEligibleAmount": 400000,
+  "reasons": [
+    "The maximum loan amount you are eligible for is ₹4,00,000, but you requested ₹4,50,000."
+  ]
+}
+```
+
+## Loan Rules
+
+All numbers and limits live in `src/constants/loanRules.js`, so the calculator,
+eligibility check and request validation cannot drift apart.
+
+### Calculator
+
+- **Amount:** ₹10,000 to ₹5,00,000 (whole rupees).
+- **Tenure:** 3 to 60 months.
+- **Interest rate:** a flat **12% p.a.**, converted to a monthly rate of
+  `12 / 12 / 100 = 0.01`. A credit-score-based rate was intentionally not used
+  here: the public calculator has no credit profile to read, and one fixed rate
+  keeps the estimate deterministic and easy to explain. Eligibility uses the
+  same rate, so the quoted EMI and the eligibility decision always agree. If
+  credit-band pricing is added later, only this constant changes.
+- **EMI:** standard reducing-balance formula
+
+  ```
+  EMI = P * r * (1 + r)^n / ((1 + r)^n - 1)
+  ```
+
+  where `P` is the principal, `r` is the monthly rate and `n` is the tenure in
+  months.
+
+- **Totals:** `totalPayable = EMI * tenureMonths` and
+  `totalInterest = totalPayable - amount`, all rounded to 2 decimal places.
+  Total payable uses the rounded EMI, so the returned numbers add up exactly.
+
+### Eligibility
+
+The check returns `eligible`, `maxEligibleAmount` and a `reasons` array. Every
+failed rule adds one plain-language reason; the app can display the array as-is.
+
+| Rule                    | Requirement                                                            |
+| ----------------------- | ---------------------------------------------------------------------- |
+| Profile completed       | `profileCompleted` must be `true`.                                     |
+| Valid PAN               | PAN must be present and match `ABCDE1234F`.                            |
+| Age                     | Between 21 and 60 years inclusive (calculated from `dob`).             |
+| Minimum income          | Monthly income of at least ₹15,000.                                    |
+| Credit score            | At least 600.                                                          |
+| FOIR                    | EMI must be at most 50% of monthly income.                             |
+| Maximum eligible amount | `min(10 x monthly income, ₹5,00,000)`; the request cannot exceed this. |
+
+FOIR means Fixed Obligation to Income Ratio: the part of monthly income that
+would go towards the EMI. Above 50%, the loan is treated as unaffordable.
+`maxEligibleAmount` is a profile-level cap based on income. A specific amount
+can still fail the FOIR rule, especially over a short tenure, even when it is
+below the cap.
+
 ## Structure
 
 ```
 src/
   config/       env validation + MongoDB connection
-  constants/    HTTP status codes and shared messages
+  constants/    HTTP status codes, shared messages and loan rules
   controllers/  request/response handling only
   middlewares/  auth, validation, rate limiting, 404 and global errors
   models/       Mongoose schemas (User, Otp)
   routes/       Express routers
-  services/     business logic (auth + pluggable OTP senders)
-  utils/        AppError, asyncHandler, tokens, phone and OTP helpers
+  services/     business logic (auth, OTP senders, EMI and eligibility)
+  utils/        AppError, asyncHandler, tokens, phone, date, PAN and OTP helpers
   validators/   Joi request schemas
   app.js        Express app
   server.js     starts server + DB connection
