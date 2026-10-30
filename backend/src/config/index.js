@@ -20,10 +20,16 @@ const envSchema = Joi.object({
   JWT_REFRESH_SECRET: Joi.string().min(32).required(),
   JWT_REFRESH_EXPIRES_IN: Joi.string().default('7d'),
 
+  OTP_MODE: Joi.string().valid('demo', 'console', 'sms').default('console'),
+  OTP_SMS_PROVIDER: Joi.string().valid('fast2sms', 'msg91').default('msg91'),
   OTP_EXPIRES_IN_MINUTES: Joi.number().integer().positive().default(5),
+  OTP_RESEND_COOLDOWN_SECONDS: Joi.number().integer().positive().default(30),
+  OTP_MAX_ATTEMPTS: Joi.number().integer().positive().default(3),
 
   RATE_LIMIT_WINDOW_MS: Joi.number().integer().positive().default(15 * 60 * 1000),
   RATE_LIMIT_MAX: Joi.number().integer().positive().default(100),
+  SEND_OTP_RATE_LIMIT_WINDOW_MS: Joi.number().integer().positive().default(15 * 60 * 1000),
+  SEND_OTP_RATE_LIMIT_MAX: Joi.number().integer().positive().default(5),
 }).unknown();
 
 const { error, value: env } = envSchema.validate(process.env, {
@@ -34,6 +40,14 @@ const { error, value: env } = envSchema.validate(process.env, {
 if (error) {
   console.error(
     `Invalid environment configuration:\n${error.details.map((d) => `  - ${d.message}`).join('\n')}`
+  );
+  process.exit(1);
+}
+
+// Demo mode uses a publicly known OTP, so it must never be enabled in production.
+if (env.NODE_ENV === 'production' && env.OTP_MODE === 'demo') {
+  console.error(
+    'Invalid environment configuration:\n  - OTP_MODE=demo is not allowed when NODE_ENV=production'
   );
   process.exit(1);
 }
@@ -52,11 +66,17 @@ const config = Object.freeze({
     refreshExpiresIn: env.JWT_REFRESH_EXPIRES_IN,
   },
   otp: {
+    mode: env.OTP_MODE,
+    smsProvider: env.OTP_SMS_PROVIDER,
     expiresInMinutes: env.OTP_EXPIRES_IN_MINUTES,
+    resendCooldownSeconds: env.OTP_RESEND_COOLDOWN_SECONDS,
+    maxAttempts: env.OTP_MAX_ATTEMPTS,
   },
   rateLimit: {
     windowMs: env.RATE_LIMIT_WINDOW_MS,
     max: env.RATE_LIMIT_MAX,
+    sendOtpWindowMs: env.SEND_OTP_RATE_LIMIT_WINDOW_MS,
+    sendOtpMax: env.SEND_OTP_RATE_LIMIT_MAX,
   },
 });
 

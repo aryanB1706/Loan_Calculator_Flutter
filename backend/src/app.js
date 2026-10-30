@@ -4,7 +4,7 @@ const helmet = require('helmet');
 const morgan = require('morgan');
 
 const config = require('./config');
-const apiLimiter = require('./middlewares/rateLimiter');
+const { apiLimiter } = require('./middlewares/rateLimiter');
 const { notFoundHandler, errorHandler } = require('./middlewares/error.middleware');
 const routes = require('./routes');
 
