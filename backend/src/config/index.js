@@ -15,6 +15,10 @@ const envSchema = Joi.object({
 
   CORS_ORIGIN: Joi.string().default('*'),
 
+  // Optional in development/test so the rest of the API keeps working without
+  // admin access. Required in production (checked below).
+  ADMIN_API_KEY: Joi.string().min(16).optional(),
+
   JWT_ACCESS_SECRET: Joi.string().min(32).required(),
   JWT_ACCESS_EXPIRES_IN: Joi.string().default('15m'),
   JWT_REFRESH_SECRET: Joi.string().min(32).required(),
@@ -26,9 +30,15 @@ const envSchema = Joi.object({
   OTP_RESEND_COOLDOWN_SECONDS: Joi.number().integer().positive().default(30),
   OTP_MAX_ATTEMPTS: Joi.number().integer().positive().default(3),
 
-  RATE_LIMIT_WINDOW_MS: Joi.number().integer().positive().default(15 * 60 * 1000),
+  RATE_LIMIT_WINDOW_MS: Joi.number()
+    .integer()
+    .positive()
+    .default(15 * 60 * 1000),
   RATE_LIMIT_MAX: Joi.number().integer().positive().default(100),
-  SEND_OTP_RATE_LIMIT_WINDOW_MS: Joi.number().integer().positive().default(15 * 60 * 1000),
+  SEND_OTP_RATE_LIMIT_WINDOW_MS: Joi.number()
+    .integer()
+    .positive()
+    .default(15 * 60 * 1000),
   SEND_OTP_RATE_LIMIT_MAX: Joi.number().integer().positive().default(5),
 }).unknown();
 
@@ -52,6 +62,14 @@ if (env.NODE_ENV === 'production' && env.OTP_MODE === 'demo') {
   process.exit(1);
 }
 
+// Admin endpoints are dangerously powerful, so production must configure them.
+if (env.NODE_ENV === 'production' && !env.ADMIN_API_KEY) {
+  console.error(
+    'Invalid environment configuration:\n  - ADMIN_API_KEY is required when NODE_ENV=production'
+  );
+  process.exit(1);
+}
+
 const config = Object.freeze({
   env: env.NODE_ENV,
   isProduction: env.NODE_ENV === 'production',
@@ -59,6 +77,7 @@ const config = Object.freeze({
   port: env.PORT,
   mongoUri: env.MONGO_URI,
   corsOrigin: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(',').map((o) => o.trim()),
+  adminApiKey: env.ADMIN_API_KEY || null,
   jwt: {
     accessSecret: env.JWT_ACCESS_SECRET,
     accessExpiresIn: env.JWT_ACCESS_EXPIRES_IN,

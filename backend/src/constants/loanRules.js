@@ -60,6 +60,8 @@ const LOAN_MESSAGES = Object.freeze({
   APPLICATION_SUBMITTED: 'Loan application submitted successfully',
   APPLICATIONS_FETCHED: 'Loan applications fetched successfully',
   APPLICATION_FETCHED: 'Loan application fetched successfully',
+  STATUS_UPDATED: 'Loan status updated successfully',
+  AUTO_DECISION_COMPLETED: 'Loan auto-decision completed successfully',
 });
 
 module.exports = {

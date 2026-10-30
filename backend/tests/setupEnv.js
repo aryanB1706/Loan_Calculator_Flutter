@@ -2,6 +2,7 @@ process.env.NODE_ENV = 'test';
 process.env.PORT = '5001';
 process.env.MONGO_URI = 'mongodb://127.0.0.1:27017/loan_calc_test';
 process.env.CORS_ORIGIN = '*';
+process.env.ADMIN_API_KEY = 'test_admin_api_key_for_tests_only';
 process.env.JWT_ACCESS_SECRET = 'test_access_secret_that_is_at_least_32_chars';
 process.env.JWT_ACCESS_EXPIRES_IN = '15m';
 process.env.JWT_REFRESH_SECRET = 'test_refresh_secret_that_is_at_least_32_chars';

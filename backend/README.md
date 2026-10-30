@@ -13,7 +13,7 @@ Node.js + Express + MongoDB API for the Loan Application mobile app.
 cd backend
 npm install
 cp .env.example .env
-# edit .env and set a real MONGO_URI plus long random JWT secrets
+# edit .env and set a real MONGO_URI plus long random JWT and admin keys
 ```
 
 ## Run
@@ -200,6 +200,62 @@ service check gives the readable message; a partial unique index on the Loan
 collection also prevents two concurrent requests from both creating an active
 application.
 
+## Admin API
+
+These endpoints are a demo stand-in for an admin console. Instead of admin user
+accounts, they require the shared `ADMIN_API_KEY` in the `x-admin-api-key`
+header. This is intentionally simple and must be replaced with real admin
+accounts and roles before launch. If the key is not configured, the admin API
+returns `503`; production refuses to start without it.
+
+| Method | Endpoint                             | Body                                 |
+| ------ | ------------------------------------ | ------------------------------------ |
+| PATCH  | `/api/admin/loans/:id/status`        | `{ "status": "...", "note": "..." }` |
+| POST   | `/api/admin/loans/:id/auto-decision` | none                                 |
+
+```bash
+# Move an application through an allowed transition
+curl -X PATCH http://localhost:5000/api/admin/loans/<loanId>/status \
+  -H "x-admin-api-key: $ADMIN_API_KEY" \
+  -H "Content-Type: application/json" \
+  -d '{"status":"under_review","note":"Picked up for review"}'
+
+# Run the basic approval decision (only from under_review)
+curl -X POST http://localhost:5000/api/admin/loans/<loanId>/auto-decision \
+  -H "x-admin-api-key: $ADMIN_API_KEY"
+```
+
+The state machine allows only:
+
+```
+submitted -> under_review -> approved | rejected
+approved -> disbursed
+```
+
+Any other transition returns `409` with a message such as
+`Invalid loan status transition: submitted -> approved`.
+
+`auto-decision` reloads the applicant, re-runs eligibility against the current
+profile (including the credit-score rule), and moves `under_review` to
+`approved` or `rejected`. Rejections store the generated explanation in both
+`statusHistory` and `rejectionReason`.
+
+Every transition appends to `statusHistory` and emits the internal
+`loan.status.changed` event from `src/events/loanEvents.js` with
+`{ loan, previousStatus, newStatus, note }`. No notifications are sent yet; the
+notification module will subscribe to this event later.
+
+### Demo the status flow
+
+```bash
+npm run simulate:loan -- <loanId>
+SIMULATION_DELAY_MS=500 npm run simulate:loan -- <loanId>
+```
+
+The helper is development-only (it refuses to run when `NODE_ENV=production`).
+Starting from the loan's current status, it waits between steps and walks the
+application through `under_review -> approved -> disbursed`.
+
 ## Loan Rules
 
 All numbers and limits live in `src/constants/loanRules.js`, so the calculator,
@@ -266,10 +322,11 @@ src/
   config/       env validation + MongoDB connection
   constants/    HTTP status codes, shared messages and loan rules
   controllers/  request/response handling only
-  middlewares/  auth, validation, rate limiting, 404 and global errors
+  events/       internal EventEmitter for loan status changes
+  middlewares/  auth, admin API key, validation, rate limiting, errors
   models/       Mongoose schemas (User, Otp, Loan, Counter)
   routes/       Express routers
-  services/     business logic (auth, OTP, EMI, eligibility and applications)
+  services/     business logic (auth, OTP, EMI, eligibility, workflow)
   utils/        AppError, asyncHandler, tokens, phone, date, PAN and OTP helpers
   validators/   Joi request schemas
   app.js        Express app
