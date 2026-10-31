@@ -60,6 +60,8 @@ class HomeController extends GetxController {
 
   Future<void> openCalculator() => _openAndRefresh(AppRoutes.loanCalculator);
 
+  Future<void> openApplications() => _openAndRefresh(AppRoutes.applications);
+
   Future<void> openLatestApplication() {
     return _openAndRefresh(
       AppRoutes.loanStatus,

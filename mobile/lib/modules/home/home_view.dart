@@ -8,6 +8,7 @@ import '../../core/utils/app_formatters.dart';
 import '../../core/widgets/app_loader.dart';
 import '../../core/widgets/credit_score_card.dart';
 import '../../core/widgets/primary_button.dart';
+import '../../core/widgets/status_chip.dart';
 import '../../data/models/loan_application.dart';
 import 'home_controller.dart';
 
@@ -122,7 +123,7 @@ class HomeView extends GetView<HomeController> {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text('Latest application', style: AppTextStyles.title),
-              _StatusChip(application: application),
+              StatusChip.loan(application.status),
             ],
           ),
           const SizedBox(height: 12),
@@ -135,6 +136,14 @@ class HomeView extends GetView<HomeController> {
             '${AppFormatters.currency(application.amount)} for '
             '${application.tenureMonths} months',
             style: AppTextStyles.bodyMedium,
+          ),
+          const SizedBox(height: 8),
+          Align(
+            alignment: Alignment.centerRight,
+            child: TextButton(
+              onPressed: controller.openApplications,
+              child: const Text('View all applications'),
+            ),
           ),
         ],
       ),
@@ -165,40 +174,5 @@ class HomeView extends GetView<HomeController> {
         ),
       ),
     );
-  }
-}
-
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({required this.application});
-
-  final LoanApplication application;
-
-  @override
-  Widget build(BuildContext context) {
-    final color = _colorFor(application.status);
-
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.12),
-        borderRadius: BorderRadius.circular(AppSizes.radiusPill),
-      ),
-      child: Text(
-        application.statusLabel,
-        style: AppTextStyles.bodySmall.copyWith(color: color),
-      ),
-    );
-  }
-
-  Color _colorFor(String status) {
-    switch (status) {
-      case 'approved':
-      case 'disbursed':
-        return AppColors.success;
-      case 'rejected':
-        return AppColors.error;
-      default:
-        return AppColors.primary;
-    }
   }
 }

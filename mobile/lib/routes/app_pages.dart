@@ -1,5 +1,7 @@
 import 'package:get/get.dart';
 
+import '../modules/applications/applications_binding.dart';
+import '../modules/applications/applications_view.dart';
 import '../modules/auth/auth_binding.dart';
 import '../modules/auth/auth_view.dart';
 import '../modules/home/home_binding.dart';
@@ -81,6 +83,11 @@ class AppPages {
       name: AppRoutes.loanApply,
       page: () => const LoanApplyView(),
       binding: LoanApplyBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.applications,
+      page: () => const ApplicationsView(),
+      binding: ApplicationsBinding(),
     ),
     GetPage(
       name: AppRoutes.loanStatus,

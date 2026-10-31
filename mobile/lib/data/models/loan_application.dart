@@ -1,3 +1,5 @@
+import 'status_change.dart';
+
 class LoanApplication {
   const LoanApplication({
     required this.id,
@@ -9,10 +11,15 @@ class LoanApplication {
     this.totalPayable,
     this.interestRate,
     this.purpose,
+    this.statusHistory = const [],
+    this.rejectionReason,
+    this.createdAt,
   });
 
   factory LoanApplication.fromJson(Object? data) {
     final json = data as Map<String, dynamic>;
+    final history = json['statusHistory'] as List? ?? const [];
+    final createdAt = json['createdAt'] as String?;
 
     return LoanApplication(
       id: json['_id'] as String,
@@ -24,6 +31,9 @@ class LoanApplication {
       totalPayable: json['totalPayable'] as num?,
       interestRate: json['interestRate'] as num?,
       purpose: json['purpose'] as String?,
+      statusHistory: history.map(StatusChange.fromJson).toList(),
+      rejectionReason: json['rejectionReason'] as String?,
+      createdAt: createdAt == null ? null : DateTime.parse(createdAt).toLocal(),
     );
   }
 
@@ -38,21 +48,17 @@ class LoanApplication {
   final num? totalPayable;
   final num? interestRate;
   final String? purpose;
+  final List<StatusChange> statusHistory;
+  final String? rejectionReason;
+  final DateTime? createdAt;
 
-  String get statusLabel {
-    switch (status) {
-      case 'submitted':
-        return 'Submitted';
-      case 'under_review':
-        return 'Under Review';
-      case 'approved':
-        return 'Approved';
-      case 'rejected':
-        return 'Rejected';
-      case 'disbursed':
-        return 'Disbursed';
-      default:
-        return status;
+  // When the application first reached [status], taken from the history.
+  DateTime? reachedAt(String status) {
+    for (final change in statusHistory) {
+      if (change.status == status) {
+        return change.changedAt;
+      }
     }
+    return null;
   }
 }

@@ -13,18 +13,22 @@ class JourneyScaffold extends StatelessWidget {
     super.key,
     required this.title,
     required this.body,
-    required this.buttonLabel,
-    required this.onButtonPressed,
+    this.buttonLabel,
+    this.onButtonPressed,
     this.onBack,
+    this.onRefresh,
     this.isLoading = false,
     this.currentStep = 0,
   });
 
   final String title;
   final Widget body;
-  final String buttonLabel;
-  final VoidCallback onButtonPressed;
+  final String? buttonLabel;
+  final VoidCallback? onButtonPressed;
   final VoidCallback? onBack;
+
+  // When set, the body can be pulled down to refresh.
+  final Future<void> Function()? onRefresh;
   final bool isLoading;
   final int currentStep;
 
@@ -63,34 +67,42 @@ class JourneyScaffold extends StatelessWidget {
       child: Column(
         children: [
           _buildTitleRow(),
-          Expanded(
-            child: SingleChildScrollView(
-              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+          Expanded(child: _buildScrollArea()),
+          if (buttonLabel != null)
+            Padding(
               padding: const EdgeInsets.fromLTRB(
                 AppSizes.pagePadding,
-                16,
+                8,
                 AppSizes.pagePadding,
-                16,
+                24,
               ),
-              child: body,
+              child: PrimaryButton(
+                label: buttonLabel!,
+                isLoading: isLoading,
+                onPressed: onButtonPressed,
+              ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(
-              AppSizes.pagePadding,
-              8,
-              AppSizes.pagePadding,
-              24,
-            ),
-            child: PrimaryButton(
-              label: buttonLabel,
-              isLoading: isLoading,
-              onPressed: onButtonPressed,
-            ),
-          ),
         ],
       ),
     );
+  }
+
+  Widget _buildScrollArea() {
+    final scrollView = SingleChildScrollView(
+      physics: onRefresh == null ? null : const AlwaysScrollableScrollPhysics(),
+      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+      padding: const EdgeInsets.fromLTRB(
+        AppSizes.pagePadding,
+        16,
+        AppSizes.pagePadding,
+        16,
+      ),
+      child: body,
+    );
+
+    return onRefresh == null
+        ? scrollView
+        : RefreshIndicator(onRefresh: onRefresh!, child: scrollView);
   }
 
   Widget _buildTitleRow() {

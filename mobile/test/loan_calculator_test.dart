@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:get/get.dart';
+import 'package:loan_app/core/constants/loan_status.dart';
 import 'package:loan_app/core/network/api_client.dart';
 import 'package:loan_app/core/theme/app_theme.dart';
 import 'package:loan_app/core/utils/app_formatters.dart';
@@ -119,6 +120,6 @@ void main() {
       'status': 'under_review',
     });
 
-    expect(loan.statusLabel, 'Under Review');
+    expect(LoanStatus.label(loan.status), 'Under Review');
   });
 }

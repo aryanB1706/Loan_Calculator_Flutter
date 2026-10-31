@@ -11,6 +11,7 @@ class AppRoutes {
   static const String loanEligibility = '/loan-eligibility';
   static const String loanSuccess = '/loan-success';
   static const String loanApply = '/loan-apply';
+  static const String applications = '/applications';
   static const String loanStatus = '/loan-status';
   static const String notifications = '/notifications';
 }
