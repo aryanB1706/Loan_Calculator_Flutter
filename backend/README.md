@@ -5,7 +5,7 @@ Node.js + Express + MongoDB API for the Loan Application mobile app.
 ## Requirements
 
 - Node.js 18+
-- MongoDB running locally (or a MongoDB Atlas URI)
+- MongoDB: a local server, or a MongoDB Atlas connection string
 
 ## Setup
 
@@ -21,11 +21,45 @@ cp .env.example .env
 ```bash
 npm run dev    # development (nodemon)
 npm start      # production
-npm test       # Jest + Supertest (requires MongoDB running)
+npm test       # Jest + Supertest (see "Testing")
 npm run lint   # ESLint
 ```
 
-The API listens on `http://localhost:5000` by default.
+The API listens on `http://localhost:5000` by default. `GET /api/health` returns
+`{ "status": "ok", "uptime": ..., "timestamp": ... }`.
+
+Every API call is also available as a Postman collection:
+[`docs/loan-calc.postman_collection.json`](docs/loan-calc.postman_collection.json).
+Import it, run **Auth -> Send OTP** then **Verify OTP**, and the access token,
+refresh token and loan id are saved into collection variables automatically.
+
+## Environment variables
+
+Copy `.env.example` to `.env`. Configuration is validated at startup, so a
+missing or malformed value stops the server with a clear message.
+
+| Variable                        | Default       | Purpose                                                      |
+| ------------------------------- | ------------- | ------------------------------------------------------------ |
+| `NODE_ENV`                      | `development` | `development`, `test` or `production`                        |
+| `PORT`                          | `5000`        | HTTP port                                                    |
+| `MONGO_URI`                     | required      | `mongodb://...` or `mongodb+srv://...` (include the DB name) |
+| `CORS_ORIGIN`                   | `*`           | Comma separated allowed origins, or `*`                      |
+| `ADMIN_API_KEY`                 | none          | 16+ chars, sent as `x-admin-api-key`. Required in production |
+| `JWT_ACCESS_SECRET`             | required      | 32+ random characters                                        |
+| `JWT_ACCESS_EXPIRES_IN`         | `15m`         | Access token lifetime                                        |
+| `JWT_REFRESH_SECRET`            | required      | 32+ random characters, different from the access secret      |
+| `JWT_REFRESH_EXPIRES_IN`        | `7d`          | Refresh token lifetime                                       |
+| `OTP_MODE`                      | `console`     | `demo`, `console` or `sms` (see OTP modes)                   |
+| `OTP_SMS_PROVIDER`              | `msg91`       | `fast2sms` or `msg91`, used only when `OTP_MODE=sms`         |
+| `OTP_EXPIRES_IN_MINUTES`        | `5`           | OTP validity (whole minutes)                                 |
+| `OTP_RESEND_COOLDOWN_SECONDS`   | `30`          | Minimum gap between OTP requests for one number              |
+| `OTP_MAX_ATTEMPTS`              | `3`           | Wrong guesses before the OTP is thrown away                  |
+| `RATE_LIMIT_WINDOW_MS`          | `900000`      | General API rate-limit window                                |
+| `RATE_LIMIT_MAX`                | `100`         | Requests per window per IP                                   |
+| `SEND_OTP_RATE_LIMIT_WINDOW_MS` | `900000`      | Window for the stricter send-OTP limiter                     |
+| `SEND_OTP_RATE_LIMIT_MAX`       | `5`           | send-OTP requests per window per IP                          |
+
+Never commit `.env` (it is git-ignored). `.env.example` holds placeholders only.
 
 ## Auth API
 
@@ -56,6 +90,41 @@ credentials to `.env` and implement `src/services/otp/smsOtpSender.js`. The auth
 service does not change because every sender follows the `OtpSender` contract.
 
 ### Try it with curl
+
+Successful responses use `{ "success": true, "message": "...", "data": ... }`.
+
+`send-otp` returns:
+
+```json
+{ "phone": "9876543210", "expiresInSeconds": 300, "resendAfterSeconds": 30, "provider": "demo" }
+```
+
+`verify-otp` creates the user on first login and returns the session:
+
+```json
+{
+  "accessToken": "<jwt>",
+  "refreshToken": "<jwt>",
+  "isNewUser": true,
+  "profileCompleted": false,
+  "user": { "_id": "...", "phone": "9876543210", "profileCompleted": false, "creditScore": 650 }
+}
+```
+
+`refresh` returns a new `{ accessToken, refreshToken }`. The old refresh token
+stops working immediately (rotation), and `logout` revokes the current one.
+
+Common failures:
+
+| Case                       | Status | Message                                              |
+| -------------------------- | ------ | ---------------------------------------------------- |
+| Invalid phone              | 422    | `Validation failed` + `errors: [{ field: "phone" }]` |
+| OTP requested too soon     | 429    | `Please wait N seconds before requesting a new OTP`  |
+| Wrong OTP                  | 400    | `Invalid OTP` + `attemptsRemaining` in `errors`      |
+| Attempts used up           | 400    | `Too many wrong attempts. Please request a new OTP.` |
+| Expired OTP                | 400    | `OTP has expired. Please request a new one.`         |
+| Expired access token       | 401    | `Authentication token expired`                       |
+| Rotated or revoked refresh | 401    | `Invalid authentication token`                       |
 
 ```bash
 # 1. Send OTP (OTP_MODE=demo always uses 123456)
@@ -93,7 +162,30 @@ Profile fields: `fullName`, `dob` (ISO date), `gender` (`male|female|other`),
 (> 0), `employmentType` (`salaried|self-employed`), `city`.
 
 `profileCompleted` becomes `true` once every field above is present. PAN must be
-unique. The response never includes `refreshTokenHash` or `fcmTokens`.
+unique (a duplicate returns `409`). The response never includes
+`refreshTokenHash` or `fcmTokens` (`fcmTokens` is reserved for push
+notifications, which are not built yet).
+
+`GET /api/users/me` and `PUT /api/users/me` both return `{ "user": { ... } }`:
+
+```json
+{
+  "user": {
+    "_id": "...",
+    "phone": "9876543210",
+    "fullName": "Asha Verma",
+    "dob": "1994-05-10T00:00:00.000Z",
+    "gender": "female",
+    "pan": "ABCDE1234F",
+    "email": "asha@example.com",
+    "monthlyIncome": 60000,
+    "employmentType": "salaried",
+    "city": "Pune",
+    "profileCompleted": true,
+    "creditScore": 650
+  }
+}
+```
 
 ```bash
 curl http://localhost:5000/api/users/me \
@@ -193,6 +285,31 @@ A successful application returns `201` with a readable number such as
 `statusHistory` entry. The list response includes
 `pagination: { page, limit, total, totalPages }`.
 
+```json
+{
+  "application": {
+    "_id": "...",
+    "applicationNumber": "LN-2026-000123",
+    "amount": 100000,
+    "tenureMonths": 12,
+    "interestRate": 12,
+    "emi": 8884.88,
+    "totalPayable": 106618.56,
+    "purpose": "Home renovation",
+    "status": "submitted",
+    "rejectionReason": null,
+    "statusHistory": [
+      { "status": "submitted", "note": "Application submitted", "changedAt": "..." }
+    ]
+  }
+}
+```
+
+An ineligible applicant gets `422` with `You are not eligible for this loan` and
+the same `reasons` the eligibility endpoint returns. An incomplete profile gets
+`422` with `Complete your profile before applying for a loan`. Another user's
+application id returns `404`.
+
 **Duplicate active applications:** one user can have only one application in
 `submitted` or `under_review`. A second request is rejected with `409` and the
 existing application number. This avoids accidental double applications and
@@ -210,8 +327,20 @@ Installment 1 is due one month after disbursement, and each later installment is
 due on the same day of the following months. Amounts use the stored `emi`.
 
 Payments are simulated (no payment gateway). Only the loan owner can pay, and
-only once per installment. A payment made after `dueDate` is stored as `late`;
-otherwise it is stored as `paid`. Both set `paidAt`.
+only once per installment. Installments must be paid **in order**: paying
+installment 3 while 2 is unpaid returns `409 Please pay installment 2 first`,
+which matches the app, where only the next installment can be paid. A payment
+made after `dueDate` is stored as `late`; otherwise it is stored as `paid`. Both
+set `paidAt`.
+
+Paying returns the updated row and the new score, so the app can refresh both:
+
+```json
+{
+  "repayment": { "installmentNumber": 1, "status": "paid", "paidAt": "...", "amount": 8884.88 },
+  "creditScore": { "score": 660, "band": "fair" }
+}
+```
 
 ```bash
 # Full repayment schedule with current statuses
@@ -223,8 +352,9 @@ curl -X POST http://localhost:5000/api/loans/<loanId>/repayments/1/pay \
   -H "Authorization: Bearer <accessToken>"
 ```
 
-Repayments are available only after disbursement. Unpaid installments remain
-`pending`; an overdue but unpaid installment is not changed until it is paid.
+Repayments are available only after disbursement; before that both repayment
+endpoints return `409`. Unpaid installments remain `pending`; an overdue but
+unpaid installment is not changed until it is paid.
 
 ## Admin API
 
@@ -251,15 +381,27 @@ curl -X POST http://localhost:5000/api/admin/loans/<loanId>/auto-decision \
   -H "x-admin-api-key: $ADMIN_API_KEY"
 ```
 
-The state machine allows only:
+The status state machine (defined once in `src/services/loanWorkflow.service.js`)
+allows only these moves:
 
-```
-submitted -> under_review -> approved | rejected
-approved -> disbursed
+```mermaid
+stateDiagram-v2
+    [*] --> submitted: user applies
+    submitted --> under_review
+    under_review --> approved
+    under_review --> rejected
+    approved --> disbursed: repayment schedule is created
+    rejected --> [*]
+    disbursed --> [*]
 ```
 
-Any other transition returns `409` with a message such as
-`Invalid loan status transition: submitted -> approved`.
+`rejected` and `disbursed` are final. Any other transition returns `409` with a
+message such as `Invalid loan status transition: submitted -> approved`, and an
+unknown status returns `422`. The state machine is a single map, so the admin
+API, `auto-decision` and the simulator can't disagree about what is allowed.
+
+Admin responses return the application under a `loan` key (the user-facing
+endpoints use `application`).
 
 `auto-decision` reloads the applicant, re-runs eligibility against the current
 profile (including the credit-score rule), and moves `under_review` to
@@ -374,6 +516,24 @@ The response contains `score`, `band` and `recentChanges` (newest first, up to
 10 entries with `change`, `previousScore`, `score`, `reason` and `createdAt`).
 Each change is stored in the `CreditScoreLog` collection for auditing. The score
 is also returned by the existing `/api/users/me` endpoint.
+
+## Testing
+
+```bash
+npm test
+```
+
+The tests need a MongoDB. By default they use `mongodb://127.0.0.1:27017/loan_calc_test`.
+To run them against a remote database such as Atlas, set `TEST_MONGO_URI`:
+
+```bash
+TEST_MONGO_URI="mongodb+srv://<user>:<password>@<cluster>/loan_calc_test" \
+  npm test -- --testTimeout=30000
+```
+
+The tests delete data from their collections, so `tests/setupEnv.js` refuses any
+database whose name does not end in `_test`. A remote database is slower than a
+local one, hence the larger timeout.
 
 ## Structure
 
