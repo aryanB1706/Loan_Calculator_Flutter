@@ -26,7 +26,11 @@ import '../modules/profile_setup/profile_setup_view.dart';
 import '../modules/profile/profile_view.dart';
 import '../modules/splash/splash_binding.dart';
 import '../modules/splash/splash_view.dart';
+import '../data/models/loan_application.dart';
+import '../data/models/loan_offer.dart';
+import '../data/models/loan_terms.dart';
 import 'app_routes.dart';
+import 'guarded_page.dart';
 
 class AppPages {
   const AppPages._();
@@ -69,17 +73,17 @@ class AppPages {
       page: () => const LoanCalculatorView(),
       binding: LoanCalculatorBinding(),
     ),
-    GetPage(
+    guardedPage<LoanTerms>(
       name: AppRoutes.loanEligibility,
       page: () => const LoanEligibilityView(),
       binding: LoanEligibilityBinding(),
     ),
-    GetPage(
+    guardedPage<LoanApplication>(
       name: AppRoutes.loanSuccess,
       page: () => const LoanSuccessView(),
       binding: LoanSuccessBinding(),
     ),
-    GetPage(
+    guardedPage<LoanOffer>(
       name: AppRoutes.loanApply,
       page: () => const LoanApplyView(),
       binding: LoanApplyBinding(),
@@ -89,7 +93,7 @@ class AppPages {
       page: () => const ApplicationsView(),
       binding: ApplicationsBinding(),
     ),
-    GetPage(
+    guardedPage<LoanApplication>(
       name: AppRoutes.loanStatus,
       page: () => const LoanStatusView(),
       binding: LoanStatusBinding(),
