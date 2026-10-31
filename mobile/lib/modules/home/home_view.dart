@@ -8,6 +8,19 @@ class HomeView extends GetView<HomeController> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(body: Center(child: Text('Home')));
+    return Scaffold(
+      body: Center(
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Text('Home'),
+            TextButton(
+              onPressed: controller.openProfile,
+              child: const Text('My Profile'),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 }

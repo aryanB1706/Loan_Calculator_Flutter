@@ -18,7 +18,7 @@ class SessionService extends GetxService {
     if (!isLoggedIn.value) {
       return AppRoutes.auth;
     }
-    return profileCompleted.value ? AppRoutes.home : AppRoutes.profile;
+    return profileCompleted.value ? AppRoutes.home : AppRoutes.profileSetup;
   }
 
   @override

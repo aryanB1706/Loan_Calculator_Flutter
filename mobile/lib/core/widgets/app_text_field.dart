@@ -10,6 +10,7 @@ class AppTextField extends StatefulWidget {
     this.controller,
     this.label,
     this.hint = '',
+    this.errorText,
     this.initialValue,
     this.keyboardType = TextInputType.text,
     this.textInputAction = TextInputAction.next,
@@ -33,6 +34,7 @@ class AppTextField extends StatefulWidget {
   final TextEditingController? controller;
   final String? label;
   final String hint;
+  final String? errorText;
   final String? initialValue;
   final TextInputType keyboardType;
   final TextInputAction textInputAction;
@@ -83,6 +85,7 @@ class _AppTextFieldState extends State<AppTextField> {
           onTapOutside: (_) => FocusScope.of(context).unfocus(),
           decoration: InputDecoration(
             hintText: widget.hint,
+            errorText: widget.errorText,
             prefixIcon: widget.prefix,
             suffixIcon: _buildSuffix(),
             counterText: '',

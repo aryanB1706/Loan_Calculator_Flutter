@@ -11,7 +11,15 @@ class AppFormatters {
 
   static final DateFormat _date = DateFormat('dd MMM yyyy');
 
+  static final DateFormat _dobInput = DateFormat('dd - MM - yyyy');
+  static final DateFormat _isoDate = DateFormat('yyyy-MM-dd');
+
   static String currency(num value) => _currency.format(value);
 
   static String date(DateTime value) => _date.format(value);
+
+  static String dobInput(DateTime value) => _dobInput.format(value);
+
+  // The backend expects a plain calendar date (no time, no timezone).
+  static String isoDate(DateTime value) => _isoDate.format(value);
 }

@@ -15,6 +15,8 @@ import '../modules/notifications/notifications_view.dart';
 import '../modules/otp/otp_binding.dart';
 import '../modules/otp/otp_view.dart';
 import '../modules/profile/profile_binding.dart';
+import '../modules/profile_setup/profile_setup_binding.dart';
+import '../modules/profile_setup/profile_setup_view.dart';
 import '../modules/profile/profile_view.dart';
 import '../modules/splash/splash_binding.dart';
 import '../modules/splash/splash_view.dart';
@@ -40,6 +42,11 @@ class AppPages {
       name: AppRoutes.otp,
       page: () => const OtpView(),
       binding: OtpBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.profileSetup,
+      page: () => const ProfileSetupView(),
+      binding: ProfileSetupBinding(),
     ),
     GetPage(
       name: AppRoutes.profile,

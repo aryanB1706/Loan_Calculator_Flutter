@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:get/get.dart';
 
 import '../../core/network/api_exception.dart';
+import '../../core/utils/debug_log.dart';
 import '../../data/repositories/auth_repository.dart';
 import '../../routes/app_routes.dart';
 import '../otp/otp_arguments.dart';
@@ -53,7 +54,8 @@ class AuthController extends GetxController {
       );
     } on ApiException catch (error) {
       errorMessage.value = error.message;
-    } catch (_) {
+    } catch (error, stack) {
+      logUnexpectedError('auth_c.requestOtp', error, stack);
       errorMessage.value = 'Something went wrong. Please try again.';
     } finally {
       isLoading.value = false;

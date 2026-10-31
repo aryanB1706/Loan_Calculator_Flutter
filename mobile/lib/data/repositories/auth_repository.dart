@@ -27,4 +27,8 @@ class AuthRepository {
     );
     return response.data!;
   }
+
+  Future<void> logout() async {
+    await _api.post<void>('/auth/logout');
+  }
 }

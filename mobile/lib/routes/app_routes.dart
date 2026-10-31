@@ -4,6 +4,7 @@ class AppRoutes {
   static const String splash = '/splash';
   static const String auth = '/auth';
   static const String otp = '/otp';
+  static const String profileSetup = '/profile-setup';
   static const String profile = '/profile';
   static const String home = '/home';
   static const String loanCalculator = '/loan-calculator';

@@ -90,7 +90,7 @@ void main() {
       profileCompleted: false,
     );
 
-    expect(session.landingRoute, AppRoutes.profile);
+    expect(session.landingRoute, AppRoutes.profileSetup);
   });
 
   test(

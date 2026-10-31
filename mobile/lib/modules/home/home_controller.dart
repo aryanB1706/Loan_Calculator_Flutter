@@ -1,3 +1,7 @@
 import 'package:get/get.dart';
 
-class HomeController extends GetxController {}
+import '../../routes/app_routes.dart';
+
+class HomeController extends GetxController {
+  void openProfile() => Get.toNamed(AppRoutes.profile);
+}

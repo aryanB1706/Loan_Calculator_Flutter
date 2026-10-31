@@ -5,6 +5,7 @@ import 'package:get/get.dart';
 
 import '../../core/constants/auth_constants.dart';
 import '../../core/network/api_exception.dart';
+import '../../core/utils/debug_log.dart';
 import '../../core/storage/session_service.dart';
 import '../../data/repositories/auth_repository.dart';
 import 'otp_arguments.dart';
@@ -82,7 +83,8 @@ class OtpController extends GetxController {
       Get.offAllNamed(_session.landingRoute);
     } on ApiException catch (error) {
       _showFailure(error.message);
-    } catch (_) {
+    } catch (error, stack) {
+      logUnexpectedError('otp_c.verify', error, stack);
       _showFailure('Something went wrong. Please try again.');
     } finally {
       isLoading.value = false;
@@ -103,7 +105,8 @@ class OtpController extends GetxController {
       _startCountdown(result.resendAfterSeconds);
     } on ApiException catch (error) {
       errorMessage.value = error.message;
-    } catch (_) {
+    } catch (error, stack) {
+      logUnexpectedError('otp_c.resend', error, stack);
       errorMessage.value = 'Something went wrong. Please try again.';
     } finally {
       isLoading.value = false;
