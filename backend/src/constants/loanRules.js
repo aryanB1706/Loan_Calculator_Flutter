@@ -29,9 +29,37 @@ const ELIGIBILITY_RULES = Object.freeze({
   MAX_AMOUNT_MULTIPLIER: 10,
 });
 
+const LOAN_STATUS = Object.freeze({
+  SUBMITTED: 'submitted',
+  UNDER_REVIEW: 'under_review',
+  APPROVED: 'approved',
+  REJECTED: 'rejected',
+  DISBURSED: 'disbursed',
+});
+
+const LOAN_STATUS_VALUES = Object.freeze(Object.values(LOAN_STATUS));
+
+// Only these statuses mean "still being processed". Terminal applications do not
+// stop the user from applying again.
+const ACTIVE_LOAN_STATUSES = Object.freeze([LOAN_STATUS.SUBMITTED, LOAN_STATUS.UNDER_REVIEW]);
+
+const LOAN_PURPOSE = Object.freeze({
+  MIN_LENGTH: 3,
+  MAX_LENGTH: 200,
+});
+
+const LOAN_PAGINATION = Object.freeze({
+  DEFAULT_PAGE: 1,
+  DEFAULT_LIMIT: 10,
+  MAX_LIMIT: 50,
+});
+
 const LOAN_MESSAGES = Object.freeze({
   CALCULATED: 'Loan EMI calculated successfully',
   ELIGIBILITY_CHECKED: 'Loan eligibility checked successfully',
+  APPLICATION_SUBMITTED: 'Loan application submitted successfully',
+  APPLICATIONS_FETCHED: 'Loan applications fetched successfully',
+  APPLICATION_FETCHED: 'Loan application fetched successfully',
 });
 
 module.exports = {
@@ -39,5 +67,10 @@ module.exports = {
   LOAN_TENURE_MONTHS,
   ANNUAL_INTEREST_RATE_PERCENT,
   ELIGIBILITY_RULES,
+  LOAN_STATUS,
+  LOAN_STATUS_VALUES,
+  ACTIVE_LOAN_STATUSES,
+  LOAN_PURPOSE,
+  LOAN_PAGINATION,
   LOAN_MESSAGES,
 };

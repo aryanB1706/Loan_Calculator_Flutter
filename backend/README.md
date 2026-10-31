@@ -115,15 +115,18 @@ curl -X PUT http://localhost:5000/api/users/me \
 
 ## Loans API
 
-| Method | Endpoint                 | Auth                | Body                                       |
-| ------ | ------------------------ | ------------------- | ------------------------------------------ |
-| POST   | `/api/loans/calculate`   | No                  | `{ "amount": 100000, "tenureMonths": 12 }` |
-| POST   | `/api/loans/eligibility` | Bearer access token | `{ "amount": 100000, "tenureMonths": 12 }` |
+| Method | Endpoint                     | Auth                | Body                                                                     |
+| ------ | ---------------------------- | ------------------- | ------------------------------------------------------------------------ |
+| POST   | `/api/loans/calculate`       | No                  | `{ "amount": 100000, "tenureMonths": 12 }`                               |
+| POST   | `/api/loans/eligibility`     | Bearer access token | `{ "amount": 100000, "tenureMonths": 12 }`                               |
+| POST   | `/api/loans/apply`           | Bearer access token | `{ "amount": 100000, "tenureMonths": 12, "purpose": "Home renovation" }` |
+| GET    | `/api/loans?page=1&limit=10` | Bearer access token | none                                                                     |
+| GET    | `/api/loans/:id`             | Bearer access token | none                                                                     |
 
 `calculate` is public: it only depends on the amount and tenure, returns no
 personal data, and lets a user explore EMIs before creating an account.
-`eligibility` is authenticated because every rule is checked against the
-signed-in user's stored profile.
+`eligibility`, `apply` and the retrieval endpoints are authenticated because
+they use the signed-in user's profile or applications.
 
 ```bash
 curl -X POST http://localhost:5000/api/loans/calculate \
@@ -159,6 +162,43 @@ when `eligible` is `true`:
   ]
 }
 ```
+
+### Applications
+
+Submitting an application re-runs the eligibility service on the server using
+the stored profile. The client cannot skip or override any rule. The saved
+application records the server-calculated rate, EMI and total payable.
+
+```bash
+# Submit an application
+curl -X POST http://localhost:5000/api/loans/apply \
+  -H "Authorization: Bearer <accessToken>" \
+  -H "Content-Type: application/json" \
+  -d '{"amount":100000,"tenureMonths":12,"purpose":"Home renovation"}'
+
+# My applications, newest first
+curl "http://localhost:5000/api/loans?page=1&limit=10" \
+  -H "Authorization: Bearer <accessToken>"
+
+# One application, including its status history
+curl http://localhost:5000/api/loans/<applicationId> \
+  -H "Authorization: Bearer <accessToken>"
+```
+
+A successful application returns `201` with a readable number such as
+`LN-2026-000123`, the quote snapshot, `status: "submitted"` and the first
+`statusHistory` entry. The list response includes
+`pagination: { page, limit, total, totalPages }`.
+
+**Duplicate active applications:** one user can have only one application in
+`submitted` or `under_review`. A second request is rejected with `409` and the
+existing application number. This avoids accidental double applications and
+duplicate credit checks while an application is still being processed.
+`approved`, `rejected` and `disbursed` are terminal for this rule, so a new
+application is allowed after the previous one leaves the active states. The
+service check gives the readable message; a partial unique index on the Loan
+collection also prevents two concurrent requests from both creating an active
+application.
 
 ## Loan Rules
 
@@ -209,6 +249,16 @@ would go towards the EMI. Above 50%, the loan is treated as unaffordable.
 can still fail the FOIR rule, especially over a short tenure, even when it is
 below the cap.
 
+### Applications
+
+Statuses follow the lifecycle `submitted -> under_review -> approved/rejected ->
+disbursed`. Applications start as `submitted` with a matching first entry in
+`statusHistory`. Application numbers use a yearly atomic counter, formatted as
+`LN-<year>-<six-digit sequence>`.
+
+Only one application may be in `submitted` or `under_review` at a time; see the
+duplicate rule above.
+
 ## Structure
 
 ```
@@ -217,9 +267,9 @@ src/
   constants/    HTTP status codes, shared messages and loan rules
   controllers/  request/response handling only
   middlewares/  auth, validation, rate limiting, 404 and global errors
-  models/       Mongoose schemas (User, Otp)
+  models/       Mongoose schemas (User, Otp, Loan, Counter)
   routes/       Express routers
-  services/     business logic (auth, OTP senders, EMI and eligibility)
+  services/     business logic (auth, OTP, EMI, eligibility and applications)
   utils/        AppError, asyncHandler, tokens, phone, date, PAN and OTP helpers
   validators/   Joi request schemas
   app.js        Express app
