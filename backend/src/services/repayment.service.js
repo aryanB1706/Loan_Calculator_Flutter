@@ -70,6 +70,26 @@ async function listRepayments(user, loanId) {
   return Repayment.find({ loan: loan._id }).sort({ installmentNumber: 1 });
 }
 
+// Installments are paid in order, matching what the app offers (only the next
+// one is payable). Already-paid rows skip this so they still get the clearer
+// "already been paid" error below.
+async function assertEarlierInstallmentsPaid(repayment) {
+  if (repayment.paidAt) return;
+
+  const earlierUnpaid = await Repayment.findOne({
+    loan: repayment.loan,
+    installmentNumber: { $lt: repayment.installmentNumber },
+    paidAt: null,
+  }).sort({ installmentNumber: 1 });
+
+  if (earlierUnpaid) {
+    throw new AppError(
+      `Please pay installment ${earlierUnpaid.installmentNumber} first`,
+      HTTP_STATUS.CONFLICT
+    );
+  }
+}
+
 async function payInstallment(user, loanId, installmentNumber) {
   const loan = await findOwnedDisbursedLoan(user, loanId);
   const installment = Number(installmentNumber);
@@ -86,6 +106,8 @@ async function payInstallment(user, loanId, installmentNumber) {
   if (!repayment) {
     throw new AppError('Installment not found', HTTP_STATUS.NOT_FOUND);
   }
+
+  await assertEarlierInstallmentsPaid(repayment);
 
   const paidAt = new Date();
   const status = paidAt > repayment.dueDate ? REPAYMENT_STATUS.LATE : REPAYMENT_STATUS.PAID;

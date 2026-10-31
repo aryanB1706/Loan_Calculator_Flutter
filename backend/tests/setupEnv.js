@@ -1,6 +1,17 @@
 process.env.NODE_ENV = 'test';
 process.env.PORT = '5001';
-process.env.MONGO_URI = 'mongodb://127.0.0.1:27017/loan_calc_test';
+// Tests wipe their collections, so only a database named *_test is accepted.
+// Set TEST_MONGO_URI to run them against a remote MongoDB (e.g. Atlas).
+const testMongoUri = process.env.TEST_MONGO_URI || 'mongodb://127.0.0.1:27017/loan_calc_test';
+const databaseName = new URL(testMongoUri).pathname.slice(1);
+
+if (!databaseName.endsWith('_test')) {
+  throw new Error(
+    `Refusing to run tests against database "${databaseName}": name must end in _test`
+  );
+}
+
+process.env.MONGO_URI = testMongoUri;
 process.env.CORS_ORIGIN = '*';
 process.env.ADMIN_API_KEY = 'test_admin_api_key_for_tests_only';
 process.env.JWT_ACCESS_SECRET = 'test_access_secret_that_is_at_least_32_chars';

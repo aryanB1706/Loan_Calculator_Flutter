@@ -224,6 +224,17 @@ describe('paying installments', () => {
     expect(log.reason).toContain('Late repayment');
   });
 
+  it('rejects paying an installment while an earlier one is unpaid', async () => {
+    const loan = await disburse(await createLoan(LOAN_STATUS.APPROVED));
+
+    const res = await payInstallment(loan._id, 2);
+
+    expect(res.status).toBe(409);
+    expect(res.body.message).toContain('installment 1 first');
+    expect(await CreditScoreLog.countDocuments({ loan: loan._id })).toBe(0);
+    expect((await User.findById(user._id)).creditScore).toBe(650);
+  });
+
   it('rejects a second payment for the same installment', async () => {
     const loan = await disburse(await createLoan(LOAN_STATUS.APPROVED));
 
