@@ -23,7 +23,6 @@ class OnboardingCarousel extends StatefulWidget {
 
 class _OnboardingCarouselState extends State<OnboardingCarousel> {
   static const double _tileSize = 184;
-  static const double _viewportFraction = 0.47;
 
   static const List<_Slide> _slides = [
     _Slide(
@@ -46,16 +45,35 @@ class _OnboardingCarouselState extends State<OnboardingCarousel> {
     ]),
   ];
 
-  late final PageController _pageController = PageController(
-    initialPage: widget.initialPage,
-    viewportFraction: _viewportFraction,
-  );
+  PageController? _pageController;
+  double? _viewportFraction;
   late int _page = widget.initialPage;
 
   @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final fraction = _fractionFor(MediaQuery.sizeOf(context).width);
+
+    if (fraction != _viewportFraction) {
+      _pageController?.dispose();
+      _viewportFraction = fraction;
+      _pageController = PageController(
+        initialPage: _page,
+        viewportFraction: fraction,
+      );
+    }
+  }
+
+  @override
   void dispose() {
-    _pageController.dispose();
+    _pageController?.dispose();
     super.dispose();
+  }
+
+  // A page must be wide enough that the neighbouring tile starts exactly at
+  // the screen edge, so only the centred tile is visible and no icon is cut.
+  static double _fractionFor(double screenWidth) {
+    return (0.5 + _tileSize / (2 * screenWidth)).clamp(0.0, 1.0);
   }
 
   @override
