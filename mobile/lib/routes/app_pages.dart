@@ -12,20 +12,34 @@ import '../modules/loan_status/loan_status_binding.dart';
 import '../modules/loan_status/loan_status_view.dart';
 import '../modules/notifications/notifications_binding.dart';
 import '../modules/notifications/notifications_view.dart';
+import '../modules/otp/otp_binding.dart';
+import '../modules/otp/otp_view.dart';
 import '../modules/profile/profile_binding.dart';
 import '../modules/profile/profile_view.dart';
+import '../modules/splash/splash_binding.dart';
+import '../modules/splash/splash_view.dart';
 import 'app_routes.dart';
 
 class AppPages {
   const AppPages._();
 
-  static const String initialRoute = AppRoutes.auth;
+  static const String initialRoute = AppRoutes.splash;
 
   static final List<GetPage> routes = [
+    GetPage(
+      name: AppRoutes.splash,
+      page: () => const SplashView(),
+      binding: SplashBinding(),
+    ),
     GetPage(
       name: AppRoutes.auth,
       page: () => const AuthView(),
       binding: AuthBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.otp,
+      page: () => const OtpView(),
+      binding: OtpBinding(),
     ),
     GetPage(
       name: AppRoutes.profile,

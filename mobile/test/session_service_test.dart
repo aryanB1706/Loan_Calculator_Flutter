@@ -2,12 +2,14 @@ import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:loan_app/core/storage/session_service.dart';
 import 'package:loan_app/core/storage/token_storage.dart';
+import 'package:loan_app/routes/app_routes.dart';
 
 class FakeTokenStorage extends TokenStorage {
   FakeTokenStorage() : super(storage: const FlutterSecureStorage());
 
   String? accessToken;
   String? refreshToken;
+  bool profileCompleted = false;
 
   @override
   Future<String?> readAccessToken() async => accessToken;
@@ -25,9 +27,18 @@ class FakeTokenStorage extends TokenStorage {
   }
 
   @override
+  Future<void> saveProfileCompleted(bool value) async {
+    profileCompleted = value;
+  }
+
+  @override
+  Future<bool> readProfileCompleted() async => profileCompleted;
+
+  @override
   Future<void> clearTokens() async {
     accessToken = null;
     refreshToken = null;
+    profileCompleted = false;
   }
 }
 
@@ -62,5 +73,46 @@ void main() {
     expect(session.isLoggedIn.value, isFalse);
     expect(storage.accessToken, isNull);
     expect(storage.refreshToken, isNull);
+  });
+
+  test('landing route is auth when logged out', () {
+    final session = SessionService(FakeTokenStorage());
+
+    expect(session.landingRoute, AppRoutes.auth);
+  });
+
+  test('landing route is profile until the profile is completed', () async {
+    final session = SessionService(FakeTokenStorage());
+
+    await session.saveSession(
+      accessToken: 'a',
+      refreshToken: 'r',
+      profileCompleted: false,
+    );
+
+    expect(session.landingRoute, AppRoutes.profile);
+  });
+
+  test(
+    'landing route is home after a restart with a finished profile',
+    () async {
+      final storage = FakeTokenStorage()
+        ..accessToken = 'existing'
+        ..profileCompleted = true;
+      final session = SessionService(storage);
+
+      await session.restore();
+
+      expect(session.landingRoute, AppRoutes.home);
+    },
+  );
+
+  test('a token refresh keeps the saved profileCompleted flag', () async {
+    final storage = FakeTokenStorage()..profileCompleted = true;
+    final session = SessionService(storage);
+
+    await session.saveSession(accessToken: 'new', refreshToken: 'new');
+
+    expect(storage.profileCompleted, isTrue);
   });
 }

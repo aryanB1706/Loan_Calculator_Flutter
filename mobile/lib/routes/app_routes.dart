@@ -1,7 +1,9 @@
 class AppRoutes {
   const AppRoutes._();
 
+  static const String splash = '/splash';
   static const String auth = '/auth';
+  static const String otp = '/otp';
   static const String profile = '/profile';
   static const String home = '/home';
   static const String loanCalculator = '/loan-calculator';

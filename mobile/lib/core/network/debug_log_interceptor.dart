@@ -21,11 +21,7 @@ class DebugLogInterceptor extends Interceptor {
 
   @override
   void onError(DioException err, ErrorInterceptorHandler handler) {
-    _log(
-      err.requestOptions,
-      err.response?.statusCode,
-      failure: err.type.name,
-    );
+    _log(err.requestOptions, err.response?.statusCode, failure: err.type.name);
     handler.next(err);
   }
 
