@@ -54,11 +54,21 @@ class HomeController extends GetxController {
     }
   }
 
-  void openProfile() => Get.toNamed(AppRoutes.profile);
+  // Each page below can change what Home shows (a new application, an edited
+  // name), so Home reloads when the user comes back.
+  Future<void> openProfile() => _openAndRefresh(AppRoutes.profile);
 
-  void openCalculator() => Get.toNamed(AppRoutes.loanCalculator);
+  Future<void> openCalculator() => _openAndRefresh(AppRoutes.loanCalculator);
 
-  void openLatestApplication() {
-    Get.toNamed(AppRoutes.loanStatus, arguments: latestApplication.value);
+  Future<void> openLatestApplication() {
+    return _openAndRefresh(
+      AppRoutes.loanStatus,
+      arguments: latestApplication.value,
+    );
+  }
+
+  Future<void> _openAndRefresh(String route, {Object? arguments}) async {
+    await Get.toNamed(route, arguments: arguments);
+    await load();
   }
 }

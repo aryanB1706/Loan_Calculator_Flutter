@@ -1,5 +1,6 @@
 import 'package:get/get.dart';
 
+import '../../core/utils/navigation.dart';
 import '../../data/models/loan_application.dart';
 import '../../routes/app_routes.dart';
 
@@ -10,9 +11,9 @@ class LoanSuccessController extends GetxController {
 
   // Home stays underneath so back from the status page returns there.
   void trackStatus() {
-    Get.offAllNamed(AppRoutes.home);
+    popUntilHome();
     Get.toNamed(AppRoutes.loanStatus, arguments: application);
   }
 
-  void goHome() => Get.offAllNamed(AppRoutes.home);
+  void goHome() => popUntilHome();
 }

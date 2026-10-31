@@ -2,6 +2,7 @@ import 'package:get/get.dart';
 
 import '../../core/network/api_exception.dart';
 import '../../core/utils/debug_log.dart';
+import '../../core/utils/navigation.dart';
 import '../../data/models/eligibility_result.dart';
 import '../../data/models/loan_offer.dart';
 import '../../data/models/loan_quote.dart';
@@ -61,5 +62,5 @@ class LoanEligibilityController extends GetxController {
 
   void changeTerms() => Get.back();
 
-  void goHome() => Get.until((route) => route.settings.name == AppRoutes.home);
+  void goHome() => popUntilHome();
 }
