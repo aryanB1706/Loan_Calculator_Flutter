@@ -16,7 +16,6 @@ const HTTP_STATUS = Object.freeze({
 
 const GENDERS = Object.freeze(['male', 'female', 'other']);
 const EMPLOYMENT_TYPES = Object.freeze(['salaried', 'self-employed']);
-const DEFAULT_CREDIT_SCORE = 650;
 
 const MESSAGES = Object.freeze({
   HEALTH_OK: 'Service is healthy',
@@ -31,6 +30,9 @@ const MESSAGES = Object.freeze({
   PROFILE_FETCHED: 'Profile fetched successfully',
   PROFILE_UPDATED: 'Profile updated successfully',
   USER_NOT_FOUND: 'User not found',
+  CREDIT_SCORE_FETCHED: 'Credit score fetched successfully',
+  REPAYMENTS_FETCHED: 'Repayment schedule fetched successfully',
+  REPAYMENT_PAID: 'Installment paid successfully',
 });
 
 module.exports = {
@@ -38,5 +40,4 @@ module.exports = {
   MESSAGES,
   GENDERS,
   EMPLOYMENT_TYPES,
-  DEFAULT_CREDIT_SCORE,
 };

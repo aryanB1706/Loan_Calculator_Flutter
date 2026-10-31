@@ -11,4 +11,23 @@ function calculateAge(dob) {
   return age;
 }
 
-module.exports = { calculateAge };
+/**
+ * Adds calendar months in UTC. If the starting day does not exist in the target
+ * month (for example 31 Jan + 1 month), it clamps to the last day of that month.
+ */
+function addMonths(date, months) {
+  const result = new Date(date.getTime());
+  const day = result.getUTCDate();
+
+  result.setUTCDate(1);
+  result.setUTCMonth(result.getUTCMonth() + months);
+
+  const daysInTargetMonth = new Date(
+    Date.UTC(result.getUTCFullYear(), result.getUTCMonth() + 1, 0)
+  ).getUTCDate();
+
+  result.setUTCDate(Math.min(day, daysInTargetMonth));
+  return result;
+}
+
+module.exports = { calculateAge, addMonths };

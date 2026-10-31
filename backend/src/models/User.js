@@ -1,6 +1,7 @@
 const mongoose = require('mongoose');
 
-const { GENDERS, EMPLOYMENT_TYPES, DEFAULT_CREDIT_SCORE } = require('../constants');
+const { GENDERS, EMPLOYMENT_TYPES } = require('../constants');
+const { CREDIT_SCORE } = require('../constants/creditScoreRules');
 const { PAN_REGEX } = require('../utils/pan');
 const { INDIAN_MOBILE_REGEX } = require('../utils/phone');
 
@@ -56,9 +57,9 @@ const userSchema = new mongoose.Schema(
     },
     creditScore: {
       type: Number,
-      default: DEFAULT_CREDIT_SCORE,
-      min: 300,
-      max: 900,
+      default: CREDIT_SCORE.DEFAULT,
+      min: CREDIT_SCORE.MIN,
+      max: CREDIT_SCORE.MAX,
     },
     // Device tokens for later FCM work; never exposed through the API.
     fcmTokens: {

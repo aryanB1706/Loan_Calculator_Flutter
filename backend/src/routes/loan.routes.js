@@ -7,6 +7,7 @@ const {
   listApplications,
   getApplication,
 } = require('../controllers/loan.controller');
+const { listRepayments, payInstallment } = require('../controllers/repayment.controller');
 const authenticate = require('../middlewares/auth.middleware');
 const validate = require('../middlewares/validate');
 const {
@@ -26,6 +27,8 @@ router.post('/calculate', validate(calculateLoanSchema), calculateLoan);
 router.post('/eligibility', authenticate, validate(eligibilitySchema), checkEligibility);
 router.post('/apply', authenticate, validate(applyLoanSchema), applyForLoan);
 router.get('/', authenticate, validate(listApplicationsQuerySchema, 'query'), listApplications);
+router.get('/:id/repayments', authenticate, listRepayments);
+router.post('/:id/repayments/:installmentNumber/pay', authenticate, payInstallment);
 router.get('/:id', authenticate, getApplication);
 
 module.exports = router;

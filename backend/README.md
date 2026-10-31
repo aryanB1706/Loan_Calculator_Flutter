@@ -29,12 +29,12 @@ The API listens on `http://localhost:5000` by default.
 
 ## Auth API
 
-| Method | Endpoint              | Auth | Body                          |
-| ------ | --------------------- | ---- | ----------------------------- |
-| POST   | `/api/auth/send-otp`  | No   | `{ "phone": "9876543210" }`   |
-| POST   | `/api/auth/verify-otp`| No   | `{ "phone": "...", "otp": "123456" }` |
-| POST   | `/api/auth/refresh`   | No   | `{ "refreshToken": "..." }`   |
-| POST   | `/api/auth/logout`    | Bearer access token | none          |
+| Method | Endpoint               | Auth                | Body                                  |
+| ------ | ---------------------- | ------------------- | ------------------------------------- |
+| POST   | `/api/auth/send-otp`   | No                  | `{ "phone": "9876543210" }`           |
+| POST   | `/api/auth/verify-otp` | No                  | `{ "phone": "...", "otp": "123456" }` |
+| POST   | `/api/auth/refresh`    | No                  | `{ "refreshToken": "..." }`           |
+| POST   | `/api/auth/logout`     | Bearer access token | none                                  |
 
 `send-otp` accepts 10 digit Indian numbers starting with 6-9, with an optional `+91`.
 OTP rules: 5 minute expiry, 30 second resend cooldown, 3 wrong attempts max.
@@ -80,12 +80,13 @@ curl -X POST http://localhost:5000/api/auth/logout \
 
 ## Users API
 
-Both endpoints require `Authorization: Bearer <accessToken>`.
+All endpoints require `Authorization: Bearer <accessToken>`.
 
-| Method | Endpoint         | Body |
-| ------ | ---------------- | ---- |
-| GET    | `/api/users/me`  | none |
-| PUT    | `/api/users/me`  | any subset of profile fields |
+| Method | Endpoint                     | Body                         |
+| ------ | ---------------------------- | ---------------------------- |
+| GET    | `/api/users/me`              | none                         |
+| PUT    | `/api/users/me`              | any subset of profile fields |
+| GET    | `/api/users/me/credit-score` | none                         |
 
 Profile fields: `fullName`, `dob` (ISO date), `gender` (`male|female|other`),
 `pan` (format `ABCDE1234F`, uppercased automatically), `email`, `monthlyIncome`
@@ -115,13 +116,15 @@ curl -X PUT http://localhost:5000/api/users/me \
 
 ## Loans API
 
-| Method | Endpoint                     | Auth                | Body                                                                     |
-| ------ | ---------------------------- | ------------------- | ------------------------------------------------------------------------ |
-| POST   | `/api/loans/calculate`       | No                  | `{ "amount": 100000, "tenureMonths": 12 }`                               |
-| POST   | `/api/loans/eligibility`     | Bearer access token | `{ "amount": 100000, "tenureMonths": 12 }`                               |
-| POST   | `/api/loans/apply`           | Bearer access token | `{ "amount": 100000, "tenureMonths": 12, "purpose": "Home renovation" }` |
-| GET    | `/api/loans?page=1&limit=10` | Bearer access token | none                                                                     |
-| GET    | `/api/loans/:id`             | Bearer access token | none                                                                     |
+| Method | Endpoint                                           | Auth                | Body                                                                     |
+| ------ | -------------------------------------------------- | ------------------- | ------------------------------------------------------------------------ |
+| POST   | `/api/loans/calculate`                             | No                  | `{ "amount": 100000, "tenureMonths": 12 }`                               |
+| POST   | `/api/loans/eligibility`                           | Bearer access token | `{ "amount": 100000, "tenureMonths": 12 }`                               |
+| POST   | `/api/loans/apply`                                 | Bearer access token | `{ "amount": 100000, "tenureMonths": 12, "purpose": "Home renovation" }` |
+| GET    | `/api/loans?page=1&limit=10`                       | Bearer access token | none                                                                     |
+| GET    | `/api/loans/:id`                                   | Bearer access token | none                                                                     |
+| GET    | `/api/loans/:id/repayments`                        | Bearer access token | none                                                                     |
+| POST   | `/api/loans/:id/repayments/:installmentNumber/pay` | Bearer access token | none                                                                     |
 
 `calculate` is public: it only depends on the amount and tenure, returns no
 personal data, and lets a user explore EMIs before creating an account.
@@ -199,6 +202,29 @@ application is allowed after the previous one leaves the active states. The
 service check gives the readable message; a partial unique index on the Loan
 collection also prevents two concurrent requests from both creating an active
 application.
+
+### Repayments
+
+When a loan moves to `disbursed`, the server creates one repayment row per EMI.
+Installment 1 is due one month after disbursement, and each later installment is
+due on the same day of the following months. Amounts use the stored `emi`.
+
+Payments are simulated (no payment gateway). Only the loan owner can pay, and
+only once per installment. A payment made after `dueDate` is stored as `late`;
+otherwise it is stored as `paid`. Both set `paidAt`.
+
+```bash
+# Full repayment schedule with current statuses
+curl http://localhost:5000/api/loans/<loanId>/repayments \
+  -H "Authorization: Bearer <accessToken>"
+
+# Simulate paying installment 1
+curl -X POST http://localhost:5000/api/loans/<loanId>/repayments/1/pay \
+  -H "Authorization: Bearer <accessToken>"
+```
+
+Repayments are available only after disbursement. Unpaid installments remain
+`pending`; an overdue but unpaid installment is not changed until it is paid.
 
 ## Admin API
 
@@ -315,18 +341,52 @@ disbursed`. Applications start as `submitted` with a matching first entry in
 Only one application may be in `submitted` or `under_review` at a time; see the
 duplicate rule above.
 
+## Credit Score
+
+Every user starts at **650** and stays within **300–900**. All values live in
+`src/constants/creditScoreRules.js`.
+
+| Event                         | Change |
+| ----------------------------- | ------ |
+| On-time repayment             | +10    |
+| Late repayment                | −20    |
+| All installments paid (bonus) | +30    |
+
+Changes are applied immediately when a repayment is recorded. The new score is
+clamped to the allowed range, and the audit log stores the change that was
+actually applied, so the log always sums to the current score. The bonus is
+added once per loan after the last unpaid installment is paid.
+
+| Band      | Score   |
+| --------- | ------- |
+| Poor      | 300–599 |
+| Fair      | 600–699 |
+| Good      | 700–799 |
+| Excellent | 800–900 |
+
+```bash
+# Current score, band and the 10 most recent changes
+curl http://localhost:5000/api/users/me/credit-score \
+  -H "Authorization: Bearer <accessToken>"
+```
+
+The response contains `score`, `band` and `recentChanges` (newest first, up to
+10 entries with `change`, `previousScore`, `score`, `reason` and `createdAt`).
+Each change is stored in the `CreditScoreLog` collection for auditing. The score
+is also returned by the existing `/api/users/me` endpoint.
+
 ## Structure
 
 ```
 src/
   config/       env validation + MongoDB connection
-  constants/    HTTP status codes, shared messages and loan rules
+  constants/    HTTP status codes, shared messages, loan, repayment and credit rules
   controllers/  request/response handling only
   events/       internal EventEmitter for loan status changes
   middlewares/  auth, admin API key, validation, rate limiting, errors
-  models/       Mongoose schemas (User, Otp, Loan, Counter)
+  models/       Mongoose schemas (User, Otp, Loan, Counter, Repayment, CreditScoreLog)
   routes/       Express routers
-  services/     business logic (auth, OTP, EMI, eligibility, workflow)
+  services/     business logic (auth, OTP, EMI, eligibility, workflow, repayment, credit)
   utils/        AppError, asyncHandler, tokens, phone, date, PAN and OTP helpers
   validators/   Joi request schemas
   app.js        Express app

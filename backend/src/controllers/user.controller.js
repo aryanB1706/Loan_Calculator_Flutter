@@ -2,6 +2,7 @@ const asyncHandler = require('../utils/asyncHandler');
 const { sendSuccess } = require('../utils/apiResponse');
 const { MESSAGES } = require('../constants');
 const userService = require('../services/user.service');
+const creditScoreService = require('../services/creditScore.service');
 
 const getMe = asyncHandler(async (req, res) => {
   const user = userService.getProfile(req.user);
@@ -21,4 +22,13 @@ const updateMe = asyncHandler(async (req, res) => {
   });
 });
 
-module.exports = { getMe, updateMe };
+const getMyCreditScore = asyncHandler(async (req, res) => {
+  const summary = await creditScoreService.getCreditScoreSummary(req.user);
+
+  return sendSuccess(res, {
+    message: MESSAGES.CREDIT_SCORE_FETCHED,
+    data: summary,
+  });
+});
+
+module.exports = { getMe, updateMe, getMyCreditScore };

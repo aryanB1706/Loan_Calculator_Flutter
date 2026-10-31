@@ -2,6 +2,7 @@ const AppError = require('../utils/AppError');
 const { HTTP_STATUS } = require('../constants');
 const { LOAN_STATUS, LOAN_STATUS_VALUES } = require('../constants/loanRules');
 const { loanEvents, LOAN_EVENTS } = require('../events/loanEvents');
+const repaymentService = require('./repayment.service');
 
 // The complete state machine. A status absent from this map cannot be reached.
 const ALLOWED_TRANSITIONS = Object.freeze({
@@ -61,6 +62,12 @@ async function transitionLoan(loan, newStatus, note) {
   loan.rejectionReason = newStatus === LOAN_STATUS.REJECTED ? finalNote : null;
 
   await loan.save();
+
+  // The schedule must exist before the disbursement request returns, so this is
+  // awaited directly. The event below remains the signal for async listeners.
+  if (newStatus === LOAN_STATUS.DISBURSED) {
+    await repaymentService.generateScheduleForLoan(loan);
+  }
 
   loanEvents.emit(LOAN_EVENTS.STATUS_CHANGED, {
     loan,
