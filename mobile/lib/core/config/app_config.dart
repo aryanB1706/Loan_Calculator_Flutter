@@ -5,8 +5,9 @@ class AppConfig {
 
   static const String appName = 'Loan App';
 
-  // Pass --dart-define=API_BASE_URL=http://<host>:5000 for physical devices.
-  // The value is the server origin only; the /api prefix is added below.
+  // Pass --dart-define=API_BASE_URL=https://<host> (server origin only; the
+  // /api prefix is added below). It is required for release builds; the local
+  // addresses below are development conveniences for debug builds only.
   static const String _baseUrlOverride = String.fromEnvironment('API_BASE_URL');
 
   static const Duration connectTimeout = Duration(seconds: 15);
@@ -15,6 +16,12 @@ class AppConfig {
   static String get baseUrl {
     if (_baseUrlOverride.trim().isNotEmpty) {
       return _stripTrailingSlash(_baseUrlOverride.trim());
+    }
+
+    if (!kDebugMode) {
+      throw StateError(
+        'API_BASE_URL is not set. Build with --dart-define=API_BASE_URL=<url>.',
+      );
     }
 
     if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {

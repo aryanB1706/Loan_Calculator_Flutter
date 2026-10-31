@@ -6,7 +6,7 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/app_formatters.dart';
 import '../../core/widgets/app_loader.dart';
-import '../../core/widgets/primary_button.dart';
+import '../../core/widgets/state_message.dart';
 import '../../core/widgets/status_chip.dart';
 import '../../data/models/loan_application.dart';
 import 'applications_controller.dart';
@@ -129,43 +129,20 @@ class ApplicationsView extends GetView<ApplicationsController> {
   }
 
   Widget _buildEmpty() {
-    return Column(
-      children: [
-        const Icon(
-          Icons.description_outlined,
-          size: 64,
-          color: AppColors.textMuted,
-        ),
-        const SizedBox(height: 16),
-        const Text('No applications yet', style: AppTextStyles.heading),
-        const SizedBox(height: 8),
-        const Text(
-          'Your loan applications will appear here.',
-          textAlign: TextAlign.center,
-          style: AppTextStyles.body,
-        ),
-        const SizedBox(height: 24),
-        PrimaryButton(
-          label: 'Apply for a loan',
-          onPressed: controller.applyForLoan,
-        ),
-      ],
+    return StateMessage(
+      icon: Icons.description_outlined,
+      title: 'No applications yet',
+      message: 'Your loan applications will appear here.',
+      actionLabel: 'Apply for a loan',
+      onAction: controller.applyForLoan,
     );
   }
 
   Widget _buildError(String message) {
-    return Column(
-      children: [
-        Text(message, textAlign: TextAlign.center, style: AppTextStyles.body),
-        const SizedBox(height: 16),
-        TextButton(
-          onPressed: () {
-            controller.isLoading.value = true;
-            controller.reload();
-          },
-          child: const Text('Try again'),
-        ),
-      ],
+    return StateMessage.error(
+      message: message,
+      isOffline: controller.isOffline.value,
+      onRetry: controller.retry,
     );
   }
 }

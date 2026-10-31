@@ -20,6 +20,7 @@ class HomeController extends GetxController {
   final Rxn<LoanApplication> latestApplication = Rxn<LoanApplication>();
   final RxBool isLoading = true.obs;
   final RxnString errorMessage = RxnString();
+  final RxBool isOffline = false.obs;
 
   String get firstName {
     final name = user.value?.fullName?.trim() ?? '';
@@ -32,8 +33,15 @@ class HomeController extends GetxController {
     load();
   }
 
+  // Used by "Try again": shows the loader again, unlike a quiet pull-to-refresh.
+  Future<void> retry() {
+    isLoading.value = true;
+    return load();
+  }
+
   Future<void> load() async {
     errorMessage.value = null;
+    isOffline.value = false;
 
     try {
       final results = await Future.wait([
@@ -46,6 +54,7 @@ class HomeController extends GetxController {
       latestApplication.value = results[2] as LoanApplication?;
     } on ApiException catch (error) {
       errorMessage.value = error.message;
+      isOffline.value = error.isNetworkError;
     } catch (error, stack) {
       logUnexpectedError('home.load', error, stack);
       errorMessage.value = 'Something went wrong. Please try again.';

@@ -1,7 +1,12 @@
 import 'package:dio/dio.dart';
 
 class ApiException implements Exception {
-  const ApiException(this.message, {this.statusCode, this.errors = const []});
+  const ApiException(
+    this.message, {
+    this.statusCode,
+    this.errors = const [],
+    this.isNetworkError = false,
+  });
 
   factory ApiException.fromDio(DioException error) {
     final wrapped = error.error;
@@ -26,10 +31,12 @@ class ApiException implements Exception {
       case DioExceptionType.transformTimeout:
         return const ApiException(
           'The request timed out. Please check your connection and try again.',
+          isNetworkError: true,
         );
       case DioExceptionType.connectionError:
         return const ApiException(
           'Could not reach the server. Check your connection and try again.',
+          isNetworkError: true,
         );
       case DioExceptionType.badCertificate:
         return const ApiException(
@@ -64,6 +71,10 @@ class ApiException implements Exception {
   final String message;
   final int? statusCode;
   final List<dynamic> errors;
+
+  // True when the request never got an answer (offline, timeout, server down),
+  // so screens can show a "no internet" state instead of a generic error.
+  final bool isNetworkError;
 
   bool get isUnauthorized => statusCode == 401;
 

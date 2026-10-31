@@ -30,6 +30,10 @@ class AuthController extends GetxController {
   }
 
   Future<void> requestOtp() async {
+    if (isLoading.value) {
+      return;
+    }
+
     errorMessage.value = null;
 
     if (!formKey.currentState!.validate()) {

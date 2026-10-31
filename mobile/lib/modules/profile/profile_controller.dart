@@ -21,6 +21,7 @@ class ProfileController extends GetxController {
   final RxBool isLoading = true.obs;
   final RxBool isLoggingOut = false.obs;
   final RxnString errorMessage = RxnString();
+  final RxBool isOffline = false.obs;
 
   @override
   void onInit() {
@@ -31,6 +32,7 @@ class ProfileController extends GetxController {
   Future<void> load() async {
     isLoading.value = true;
     errorMessage.value = null;
+    isOffline.value = false;
 
     try {
       final results = await Future.wait([
@@ -41,6 +43,7 @@ class ProfileController extends GetxController {
       creditScore.value = results[1] as CreditScore;
     } on ApiException catch (error) {
       errorMessage.value = error.message;
+      isOffline.value = error.isNetworkError;
     } catch (error, stack) {
       logUnexpectedError('profile_c.load', error, stack);
       errorMessage.value = 'Something went wrong. Please try again.';

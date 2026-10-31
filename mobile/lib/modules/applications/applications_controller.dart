@@ -23,6 +23,7 @@ class ApplicationsController extends GetxController {
   final RxBool isLoadingMore = false.obs;
   final RxBool loadMoreFailed = false.obs;
   final RxnString errorMessage = RxnString();
+  final RxBool isOffline = false.obs;
 
   int _page = 0;
   bool _hasMore = true;
@@ -40,9 +41,15 @@ class ApplicationsController extends GetxController {
     super.onClose();
   }
 
+  Future<void> retry() {
+    isLoading.value = true;
+    return reload();
+  }
+
   // Starts again from page 1; used on open, on pull-to-refresh and on retry.
   Future<void> reload() async {
     errorMessage.value = null;
+    isOffline.value = false;
 
     try {
       final result = await _fetch(1);
@@ -51,6 +58,7 @@ class ApplicationsController extends GetxController {
       _hasMore = result.hasMore;
     } on ApiException catch (error) {
       errorMessage.value = error.message;
+      isOffline.value = error.isNetworkError;
     } catch (error, stack) {
       logUnexpectedError('applications.reload', error, stack);
       errorMessage.value = 'Something went wrong. Please try again.';

@@ -8,6 +8,7 @@ import '../../core/utils/app_formatters.dart';
 import '../../core/widgets/app_loader.dart';
 import '../../core/widgets/credit_score_card.dart';
 import '../../core/widgets/primary_button.dart';
+import '../../core/widgets/state_message.dart';
 import '../../core/widgets/status_chip.dart';
 import '../../data/models/loan_application.dart';
 import 'home_controller.dart';
@@ -40,7 +41,7 @@ class HomeView extends GetView<HomeController> {
 
     final creditScore = controller.creditScore.value;
     if (creditScore == null) {
-      return _buildError(controller.errorMessage.value);
+      return _buildError();
     }
 
     return RefreshIndicator(
@@ -150,29 +151,12 @@ class HomeView extends GetView<HomeController> {
     );
   }
 
-  Widget _buildError(String? message) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSizes.pagePadding),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              message ?? 'Could not load your home screen.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.body,
-            ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: () {
-                controller.isLoading.value = true;
-                controller.load();
-              },
-              child: const Text('Try again'),
-            ),
-          ],
-        ),
-      ),
+  Widget _buildError() {
+    return StateMessage.error(
+      message:
+          controller.errorMessage.value ?? 'Could not load your home screen.',
+      isOffline: controller.isOffline.value,
+      onRetry: controller.retry,
     );
   }
 }

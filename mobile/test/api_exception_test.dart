@@ -58,6 +58,28 @@ void main() {
     );
   });
 
+  test('marks connection failures as network errors, server replies not', () {
+    ApiException fromType(DioExceptionType type, {int? status}) {
+      final options = RequestOptions(path: '/loans');
+      return ApiException.fromDio(
+        DioException(
+          requestOptions: options,
+          type: type,
+          response: status == null
+              ? null
+              : Response(requestOptions: options, statusCode: status),
+        ),
+      );
+    }
+
+    expect(fromType(DioExceptionType.connectionError).isNetworkError, isTrue);
+    expect(fromType(DioExceptionType.receiveTimeout).isNetworkError, isTrue);
+    expect(
+      fromType(DioExceptionType.badResponse, status: 500).isNetworkError,
+      isFalse,
+    );
+  });
+
   test('keeps a wrapped ApiException unchanged', () {
     const original = ApiException(
       'Your session has expired. Please sign in again.',

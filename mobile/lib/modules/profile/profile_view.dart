@@ -9,6 +9,7 @@ import '../../core/utils/app_formatters.dart';
 import '../../core/widgets/app_loader.dart';
 import '../../core/widgets/credit_score_card.dart';
 import '../../core/widgets/primary_button.dart';
+import '../../core/widgets/state_message.dart';
 import '../../data/models/user_model.dart';
 import 'profile_controller.dart';
 
@@ -32,7 +33,7 @@ class ProfileView extends GetView<ProfileController> {
     final creditScore = controller.creditScore.value;
 
     if (user == null || creditScore == null) {
-      return _buildError(controller.errorMessage.value);
+      return _buildError();
     }
 
     return ListView(
@@ -54,26 +55,11 @@ class ProfileView extends GetView<ProfileController> {
     );
   }
 
-  Widget _buildError(String? message) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSizes.pagePadding),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Text(
-              message ?? 'Could not load your profile.',
-              textAlign: TextAlign.center,
-              style: AppTextStyles.body,
-            ),
-            const SizedBox(height: 16),
-            TextButton(
-              onPressed: controller.load,
-              child: const Text('Try again'),
-            ),
-          ],
-        ),
-      ),
+  Widget _buildError() {
+    return StateMessage.error(
+      message: controller.errorMessage.value ?? 'Could not load your profile.',
+      isOffline: controller.isOffline.value,
+      onRetry: controller.load,
     );
   }
 
