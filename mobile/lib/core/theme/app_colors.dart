@@ -29,6 +29,8 @@ class AppColors {
   static const Color slideDot = Color(0xFF8DA6C6);
   static const Color slideSubtitle = Color(0xFFB4C4DA);
 
+  static const Color sliderTrack = Color(0xFFEAF3FF);
+
   static const Color buttonGlow = Color(0x800075FF);
   static const Color sheetShadow = Color(0x14000000);
 }

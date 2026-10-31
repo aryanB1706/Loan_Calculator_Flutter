@@ -7,8 +7,8 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_text_styles.dart';
 import '../../core/utils/app_formatters.dart';
 import '../../core/widgets/app_loader.dart';
+import '../../core/widgets/credit_score_card.dart';
 import '../../core/widgets/primary_button.dart';
-import '../../data/models/credit_score.dart';
 import '../../data/models/user_model.dart';
 import 'profile_controller.dart';
 
@@ -38,7 +38,7 @@ class ProfileView extends GetView<ProfileController> {
     return ListView(
       padding: const EdgeInsets.all(AppSizes.pagePadding),
       children: [
-        _CreditScoreCard(creditScore: creditScore),
+        CreditScoreCard(creditScore: creditScore),
         const SizedBox(height: 24),
         _DetailsCard(user: user),
         const SizedBox(height: 24),
@@ -103,58 +103,6 @@ class ProfileView extends GetView<ProfileController> {
   }
 }
 
-class _CreditScoreCard extends StatelessWidget {
-  const _CreditScoreCard({required this.creditScore});
-
-  final CreditScore creditScore;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: AppColors.primaryDark,
-        borderRadius: BorderRadius.circular(AppSizes.radiusLarge),
-      ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Credit score',
-                style: AppTextStyles.body.copyWith(
-                  color: AppColors.slideSubtitle,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                '${creditScore.score}',
-                style: AppTextStyles.heading.copyWith(
-                  color: AppColors.white,
-                  fontSize: 32,
-                ),
-              ),
-            ],
-          ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            decoration: BoxDecoration(
-              color: AppColors.mint,
-              borderRadius: BorderRadius.circular(AppSizes.radiusPill),
-            ),
-            child: Text(
-              _capitalize(creditScore.band),
-              style: AppTextStyles.label.copyWith(color: AppColors.primaryDark),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-}
-
 class _DetailsCard extends StatelessWidget {
   const _DetailsCard({required this.user});
 
@@ -212,8 +160,4 @@ class _DetailsCard extends StatelessWidget {
       ),
     );
   }
-}
-
-String _capitalize(String value) {
-  return value.isEmpty ? value : value[0].toUpperCase() + value.substring(1);
 }
