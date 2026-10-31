@@ -67,6 +67,18 @@ class ApiException implements Exception {
 
   bool get isUnauthorized => statusCode == 401;
 
+  // Every message the backend attached to one field (the eligibility check
+  // returns several reasons under the same field).
+  List<String> messagesFor(String field) {
+    return [
+      for (final error in errors)
+        if (error is Map &&
+            error['field'] == field &&
+            error['message'] is String)
+          error['message'] as String,
+    ];
+  }
+
   // Backend validation errors arrive as [{field, message}]; the first message
   // per field is shown under that field.
   Map<String, String> get fieldErrors {

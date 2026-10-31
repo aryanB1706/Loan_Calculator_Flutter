@@ -39,7 +39,10 @@ class LoanCalculatorView extends GetView<LoanCalculatorController> {
             const SizedBox(height: 32),
             Obx(_buildResultCard),
             const SizedBox(height: 24),
-            PrimaryButton(label: 'Apply', onPressed: controller.apply),
+            PrimaryButton(
+              label: 'Check eligibility',
+              onPressed: controller.checkEligibility,
+            ),
             const SizedBox(height: 16),
             OutlinedButton(onPressed: Get.back, child: const Text('Cancel')),
           ],

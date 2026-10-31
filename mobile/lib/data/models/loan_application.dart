@@ -5,6 +5,10 @@ class LoanApplication {
     required this.amount,
     required this.tenureMonths,
     required this.status,
+    this.emi,
+    this.totalPayable,
+    this.interestRate,
+    this.purpose,
   });
 
   factory LoanApplication.fromJson(Object? data) {
@@ -16,6 +20,10 @@ class LoanApplication {
       amount: json['amount'] as num,
       tenureMonths: (json['tenureMonths'] as num).toInt(),
       status: json['status'] as String,
+      emi: json['emi'] as num?,
+      totalPayable: json['totalPayable'] as num?,
+      interestRate: json['interestRate'] as num?,
+      purpose: json['purpose'] as String?,
     );
   }
 
@@ -26,6 +34,10 @@ class LoanApplication {
 
   // submitted | under_review | approved | rejected | disbursed
   final String status;
+  final num? emi;
+  final num? totalPayable;
+  final num? interestRate;
+  final String? purpose;
 
   String get statusLabel {
     switch (status) {

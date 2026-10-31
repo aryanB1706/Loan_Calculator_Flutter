@@ -8,6 +8,7 @@ import '../../core/network/api_exception.dart';
 import '../../core/utils/debug_log.dart';
 import '../../routes/app_routes.dart';
 import '../../data/models/loan_quote.dart';
+import '../../data/models/loan_terms.dart';
 import '../../data/repositories/loan_repository.dart';
 
 /// Keeps the amount and tenure in sync between sliders and text boxes and asks
@@ -100,11 +101,13 @@ class LoanCalculatorController extends GetxController {
     _scheduleQuote();
   }
 
-  // The application form is the next step; the chosen terms travel with the route.
-  void apply() {
+  void checkEligibility() {
     Get.toNamed(
-      AppRoutes.loanApply,
-      arguments: {'amount': amount.value, 'tenureMonths': tenureMonths.value},
+      AppRoutes.loanEligibility,
+      arguments: LoanTerms(
+        amount: amount.value,
+        tenureMonths: tenureMonths.value,
+      ),
     );
   }
 

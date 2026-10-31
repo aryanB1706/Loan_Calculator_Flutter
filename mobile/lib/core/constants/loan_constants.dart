@@ -15,3 +15,20 @@ class LoanLimits {
   static int get amountDivisions => (maxAmount - minAmount) ~/ amountStep;
   static int get tenureDivisions => maxTenureMonths - minTenureMonths;
 }
+
+class LoanPurposes {
+  const LoanPurposes._();
+
+  // The backend accepts any text of 3-200 characters; a fixed list keeps the
+  // data clean and the picker simple.
+  static const List<String> options = [
+    'Personal expenses',
+    'Medical emergency',
+    'Education',
+    'Home renovation',
+    'Travel',
+    'Business',
+    'Wedding',
+    'Other',
+  ];
+}

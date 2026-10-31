@@ -8,7 +8,11 @@ import '../modules/loan_apply/loan_apply_binding.dart';
 import '../modules/loan_apply/loan_apply_view.dart';
 import '../modules/loan_calculator/loan_calculator_binding.dart';
 import '../modules/loan_calculator/loan_calculator_view.dart';
+import '../modules/loan_eligibility/loan_eligibility_binding.dart';
+import '../modules/loan_eligibility/loan_eligibility_view.dart';
 import '../modules/loan_status/loan_status_binding.dart';
+import '../modules/loan_success/loan_success_binding.dart';
+import '../modules/loan_success/loan_success_view.dart';
 import '../modules/loan_status/loan_status_view.dart';
 import '../modules/notifications/notifications_binding.dart';
 import '../modules/notifications/notifications_view.dart';
@@ -62,6 +66,16 @@ class AppPages {
       name: AppRoutes.loanCalculator,
       page: () => const LoanCalculatorView(),
       binding: LoanCalculatorBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.loanEligibility,
+      page: () => const LoanEligibilityView(),
+      binding: LoanEligibilityBinding(),
+    ),
+    GetPage(
+      name: AppRoutes.loanSuccess,
+      page: () => const LoanSuccessView(),
+      binding: LoanSuccessBinding(),
     ),
     GetPage(
       name: AppRoutes.loanApply,
