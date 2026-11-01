@@ -104,12 +104,16 @@ after a quiet period can take up to a minute (see "Free tier" below).
 
 ## 4. Point the app at it
 
-The release build requires the API address and takes the server origin only
-(no `/api`):
+The app ships pointing at `https://credit-sea-api.onrender.com`, set in
+`mobile/lib/core/config/app_config.dart`. If your service got a different URL
+(Render adds a suffix when a name is taken), change that one constant, or pass
+the address when building. It is the server origin only, no `/api`:
 
 ```bash
 cd mobile
-flutter build apk --release --dart-define=API_BASE_URL=https://credit-sea-api.onrender.com
+flutter build apk --release
+# or for another address:
+flutter build apk --release --dart-define=API_BASE_URL=https://<your-service>.onrender.com
 ```
 
 The APK is at `mobile/build/app/outputs/flutter-apk/app-release.apk`. Copy it to
@@ -117,11 +121,10 @@ a phone and install it (allow installs from your file manager if asked). For a
 quick test without building:
 
 ```bash
-flutter run --dart-define=API_BASE_URL=https://credit-sea-api.onrender.com
+flutter run
 ```
 
-Also set the Postman collection variable `baseUrl` to the same address, and put
-the live URL in the root README so reviewers can use it.
+The Postman collection's `baseUrl` already points at the live service.
 
 ## 5. Using the admin endpoints
 
@@ -155,9 +158,9 @@ public, do not put real user data on a demo deployment.
 ## Free tier: what to expect
 
 - **Cold start.** A free service sleeps after about 15 minutes without traffic
-  and takes 30 to 60 seconds to wake. The app waits 15 seconds to connect and 20
-  to receive, so the first request after a sleep can show the "No internet
-  connection" screen with **Try again**. Open `$BASE/api/health` in a browser
+  and takes 30 to 60 seconds to wake. The app waits up to 30 seconds to connect and
+  60 to receive, which usually covers the wake-up; if not, it shows the "No
+  internet connection" screen with **Try again**. Open `$BASE/api/health` in a browser
   just before a demo, or have a free uptime monitor ping it every 10 minutes.
 - **Logs.** Render -> your service -> Logs shows requests and errors.
 - **Redeploys.** `autoDeploy` is on, so every push to the main branch rebuilds.
@@ -171,5 +174,5 @@ public, do not put real user data on a demo deployment.
 | `/api/health` works but sign-in fails             | The database name is missing from `MONGO_URI`, or the string was pasted with `<password>` unreplaced.   |
 | Users get "Too many requests" quickly             | `TRUST_PROXY` is not `1`, so everyone shares one rate-limit budget.                                     |
 | Admin calls return `503`                          | `ADMIN_API_KEY` is not set on the service.                                                             |
-| App cannot connect                                | The APK was built without `API_BASE_URL`, or with `/api` at the end, or with `http://` instead of `https://`. |
+| App cannot connect                                | `app_config.dart` or `API_BASE_URL` has a wrong address, `/api` at the end, or `http://` instead of `https://`. |
 | First request is slow or fails, later ones work   | Cold start on the free plan (see above).                                                               |

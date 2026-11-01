@@ -1,34 +1,24 @@
-import 'package:flutter/foundation.dart';
-
 class AppConfig {
   const AppConfig._();
 
   static const String appName = 'Loan App';
 
-  // Pass --dart-define=API_BASE_URL=https://<host> (server origin only; the
-  // /api prefix is added below). It is required for release builds; the local
-  // addresses below are development conveniences for debug builds only.
+  // The deployed backend (Render). It is a public address, not a secret.
+  static const String _defaultBaseUrl = 'https://credit-sea-api.onrender.com';
+
+  // To use another backend (a local one, for example) pass
+  //   --dart-define=API_BASE_URL=http://10.0.2.2:5000
+  // The value is the server origin only; the /api prefix is added below.
   static const String _baseUrlOverride = String.fromEnvironment('API_BASE_URL');
 
-  static const Duration connectTimeout = Duration(seconds: 15);
-  static const Duration receiveTimeout = Duration(seconds: 20);
+  // The free Render plan sleeps when idle, and waking it takes up to a minute,
+  // so the first request is allowed to take longer than later ones would.
+  static const Duration connectTimeout = Duration(seconds: 30);
+  static const Duration receiveTimeout = Duration(seconds: 60);
 
   static String get baseUrl {
-    if (_baseUrlOverride.trim().isNotEmpty) {
-      return _stripTrailingSlash(_baseUrlOverride.trim());
-    }
-
-    if (!kDebugMode) {
-      throw StateError(
-        'API_BASE_URL is not set. Build with --dart-define=API_BASE_URL=<url>.',
-      );
-    }
-
-    if (!kIsWeb && defaultTargetPlatform == TargetPlatform.android) {
-      return 'http://10.0.2.2:5000';
-    }
-
-    return 'http://localhost:5000';
+    final override = _baseUrlOverride.trim();
+    return _stripTrailingSlash(override.isEmpty ? _defaultBaseUrl : override);
   }
 
   static String get apiBaseUrl => '$baseUrl/api';

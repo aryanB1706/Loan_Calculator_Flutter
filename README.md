@@ -95,10 +95,19 @@ The Figma frames the UI follows are in [`design/screens`](design/screens).
 
 ## Try it in 5 minutes
 
-You need Node 18+, Flutter 3.47+, and a MongoDB (a free Atlas cluster is the
-easiest).
+You need Flutter 3.47+. The backend is already deployed; Node 18+ and a MongoDB
+are only needed if you want to run your own copy.
 
-**1. Start the backend**
+**1. Backend: nothing to start**
+
+The app is wired to the deployed API at
+[`https://credit-sea-api.onrender.com`](https://credit-sea-api.onrender.com/api/health),
+so you can skip straight to the app. It runs in demo mode: every OTP is
+`123456`, and the OTP screen shows a small "Demo mode" hint so testers don't
+have to guess. (The first request after a quiet period can take up to a minute
+while the free server wakes up.)
+
+Want your own backend instead? Run it locally and point the app at it:
 
 ```bash
 cd backend
@@ -107,15 +116,14 @@ cp .env.example .env       # set MONGO_URI and the three secrets
 npm run dev                # http://localhost:5000
 ```
 
-`OTP_MODE=demo` is the default in `.env.example`: every OTP is `123456`, and
-the OTP screen shows a small "Demo mode" hint so testers don't have to guess.
-
 **2. Run the app**
 
 ```bash
 cd mobile
 flutter pub get
-flutter run                # the Android emulator finds the backend itself
+flutter run                                  # uses the deployed API
+# or, against a local backend on an Android emulator:
+flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000
 ```
 
 **3. Walk the journey**
@@ -130,19 +138,21 @@ flutter run                # the Android emulator finds the backend itself
 **4. Move the loan forward (as the "bank")**
 
 The app shows the status the server holds, so approve it from the admin side.
-Take the loan id from Postman's **List my applications** (import
-[`backend/docs/loan-calc.postman_collection.json`](backend/docs/loan-calc.postman_collection.json))
-or from the `loans` collection, then either:
+Import the
+[Postman collection](backend/docs/loan-calc.postman_collection.json) (its
+`baseUrl` is already the live API), set `adminApiKey` to the service's
+`ADMIN_API_KEY` (Render -> Environment), and run **Admin** -> **Move to
+under_review**, **Auto-decision**, then **Disburse**. Or with curl:
 
 ```bash
-# one step at a time, with the admin key from backend/.env
-curl -X PATCH http://localhost:5000/api/admin/loans/<loanId>/status \
+BASE=https://credit-sea-api.onrender.com
+curl -X PATCH $BASE/api/admin/loans/<loanId>/status \
   -H "x-admin-api-key: $ADMIN_API_KEY" -H "Content-Type: application/json" \
   -d '{"status":"under_review"}'
-
-# or walk it through review, approval and disbursement automatically
-cd backend && npm run simulate:loan -- <loanId>
 ```
+
+The loan id is in the `loans` collection, or in the response of Postman's
+**List my applications** when called with the user's access token.
 
 Pull down to refresh on the status screen: the timeline advances, and once the
 loan is **Disbursed** a repayment schedule appears. Pay the first installment
@@ -390,12 +400,15 @@ loan_calc/
 
 ## Configuration
 
-| Where the app runs  | API address                                                       |
-| ------------------- | ----------------------------------------------------------------- |
-| Android emulator    | Automatic (`http://10.0.2.2:5000`) in debug builds                |
-| iOS simulator / web | Automatic (`http://localhost:5000`) in debug builds               |
-| Physical phone      | `flutter run --dart-define=API_BASE_URL=http://<laptop-ip>:5000`  |
-| Release build       | `API_BASE_URL` is required, use `https://...`                     |
+The app uses `https://credit-sea-api.onrender.com` everywhere by default
+(emulator, real phone, Chrome, release APK), so no flags are needed. To use a
+backend on your laptop, pass `--dart-define=API_BASE_URL=<origin>`:
+
+| Where the app runs  | Local backend address                       |
+| ------------------- | ------------------------------------------- |
+| Android emulator    | `http://10.0.2.2:5000`                      |
+| iOS simulator / web | `http://localhost:5000`                     |
+| Physical phone      | `http://<laptop-ip>:5000` (same Wi-Fi)      |
 
 Backend settings (database, secrets, OTP mode, rate limits) are in
 `backend/.env`; every variable is documented in
@@ -418,10 +431,10 @@ own rate-limit budget; the Blueprint already sets it.
 | ------------------------------------------------- | ----------------------------------------------------------------------------------------------------- |
 | Backend exits with a MongoDB connection error     | Start MongoDB or use an Atlas URI in `MONGO_URI`. Some MongoDB versions also refuse to start on Linux kernel 6.19 and newer (MongoDB SERVER-121912); Atlas avoids that. |
 | Atlas: "bad auth" or timeout                      | Check the user and password (URL-encode special characters) and add your IP under Network Access.      |
-| App shows "No internet connection" on a phone     | Use the laptop's LAN IP in `API_BASE_URL`, same Wi-Fi, and allow port 5000 in the firewall.             |
+| "No internet connection" on the first try         | The free Render server was asleep. Open `/api/health` in a browser, wait for it, then tap Try again.    |
+| "No internet connection" with a local backend      | Use the laptop's LAN IP in `API_BASE_URL`, same Wi-Fi, and allow port 5000 in the firewall.             |
 | iPhone cannot reach an `http://` address          | iOS only allows plain HTTP to `localhost`; use an `https` URL (a tunnel works for demos).               |
 | OTP is rejected                                   | In demo mode it is always `123456`. After 3 wrong tries request a new one.                              |
-| Release build stops at startup                    | Pass `--dart-define=API_BASE_URL=https://...`; there is intentionally no default.                       |
 | Admin calls return `503` or `401`                 | Set `ADMIN_API_KEY` (16+ characters) in `.env` and send it as `x-admin-api-key`.                        |
 
 ## Limitations and future work

@@ -713,8 +713,8 @@
   "variable": [
     {
       "key": "baseUrl",
-      "value": "http://localhost:5000",
-      "description": "Server origin, without /api. Locally http://localhost:5000; after deploying, your Render URL (https://<service>.onrender.com)."
+      "value": "https://credit-sea-api.onrender.com",
+      "description": "Server origin, without /api. The deployed API by default; use http://localhost:5000 for a local backend. The free server can take up to a minute to wake on the first request."
     },
     {
       "key": "phone",

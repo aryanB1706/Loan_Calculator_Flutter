@@ -33,40 +33,46 @@ real targets):
 flutter run -d chrome
 ```
 
-## Backend URL: emulator vs real device
+## Backend URL
 
-The URL is set in `lib/core/config/app_config.dart`. You pass the server origin
-(no `/api`; the app adds it) with `--dart-define=API_BASE_URL=...`.
+The app talks to the deployed backend by default:
 
-| Where you run         | What to do                                                       |
-| --------------------- | ---------------------------------------------------------------- |
-| Android emulator      | Nothing. Debug builds default to `http://10.0.2.2:5000`.         |
-| iOS simulator / web   | Nothing. Debug builds default to `http://localhost:5000`.        |
-| Physical phone        | `flutter run --dart-define=API_BASE_URL=http://<laptop-ip>:5000` |
-| Release build         | `API_BASE_URL` is **required** and should be `https://...`       |
-
-Real device checklist:
-
-1. Phone and computer are on the same Wi-Fi.
-2. Use the computer's LAN IP (for example `192.168.1.25`), not `localhost`.
-3. The backend listens on all interfaces by default; allow port `5000` in the
-   firewall.
-4. Android debug builds allow plain `http`. On iOS, App Transport Security only
-   allows `localhost`, so a real iPhone needs an `https` URL (a tunnel such as
-   ngrok works for demos).
-
-A release build without `API_BASE_URL` stops at startup with a clear error
-instead of silently calling `localhost`.
-
-```bash
-flutter build apk --release --dart-define=API_BASE_URL=https://api.example.com
+```
+https://credit-sea-api.onrender.com
 ```
 
-To host the backend on Render first, follow
-[`../docs/deploy-render.md`](../docs/deploy-render.md).
+So `flutter run` and release builds work on an emulator, a real phone and Chrome
+with no extra flags. The address is one constant in
+`lib/core/config/app_config.dart` (the app adds `/api` itself).
 
-No keys or secrets are stored in the app. Tokens issued by the backend are kept
-in the platform's secure storage.
+To use a different backend, such as one running on your laptop, pass the server
+origin (no `/api`) with `--dart-define=API_BASE_URL=...`:
+
+| Where the app runs   | Local backend (`npm run dev` on port 5000)                         |
+| -------------------- | ------------------------------------------------------------------ |
+| Android emulator     | `flutter run --dart-define=API_BASE_URL=http://10.0.2.2:5000`      |
+| iOS simulator / web  | `flutter run --dart-define=API_BASE_URL=http://localhost:5000`     |
+| Physical phone       | `flutter run --dart-define=API_BASE_URL=http://<laptop-ip>:5000`   |
+
+Checklist for a phone talking to your laptop: same Wi-Fi, the laptop's LAN IP
+(not `localhost`), and port `5000` allowed in the firewall. Android debug builds
+allow plain `http`; iOS only allows it to `localhost`, so a real iPhone needs an
+`https` URL.
+
+**First request after a pause.** The deployed backend is on Render's free plan,
+which sleeps when idle and takes up to a minute to wake. The app waits up to 30
+seconds to connect and 60 to receive for that reason, and shows "Try again" if
+it still cannot reach the server. Opening
+`https://credit-sea-api.onrender.com/api/health` in a browser wakes it up.
+
+Release build:
+
+```bash
+flutter build apk --release
+```
+
+Deploying your own copy of the backend is covered in
+[`../docs/deploy-render.md`](../docs/deploy-render.md).
 
 ## Firebase / push notifications
 
