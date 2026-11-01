@@ -29,6 +29,7 @@ API. The app talks to the real backend for everything; there is no mock data.
 - [Testing and verification](#testing-and-verification)
 - [Project structure](#project-structure)
 - [Configuration](#configuration)
+- [Deploy on Render](#deploy-on-render)
 - [Troubleshooting](#troubleshooting)
 - [Limitations and future work](#limitations-and-future-work)
 - [Documentation index](#documentation-index)
@@ -72,7 +73,7 @@ The Figma frames the UI follows are in [`design/screens`](design/screens).
   payment lowers it, and every change is written to an audit log.
 - **Built to be explained.** Strict layering on both sides, rules in constants,
   small functions, and a [design-decisions guide](docs/design-decisions.md).
-- **Tested.** 147 backend tests, 76 mobile tests, a clean `flutter analyze`,
+- **Tested.** 149 backend tests, 76 mobile tests, a clean `flutter analyze`,
   and a 44-check end-to-end run against the live API (see
   [verification](#testing-and-verification)).
 
@@ -331,7 +332,7 @@ every call is ready to run in the
 ## Testing and verification
 
 ```bash
-cd backend && npm test                    # 147 tests (Jest + Supertest)
+cd backend && npm test                    # 149 tests (Jest + Supertest)
 cd mobile  && flutter analyze && flutter test   # clean analyzer, 76 tests
 ```
 
@@ -400,6 +401,17 @@ Backend settings (database, secrets, OTP mode, rate limits) are in
 `backend/.env`; every variable is documented in
 [backend/README.md](backend/README.md#environment-variables).
 
+## Deploy on Render
+
+The repo ships a [`render.yaml`](render.yaml) Blueprint. In Render choose
+**New + → Blueprint**, pick this repository and paste your Atlas `MONGO_URI`;
+the JWT secrets and admin key are generated for you. The step-by-step guide
+(Atlas network access, checking the deploy, building the APK against the live
+URL, free-tier cold starts) is in [docs/deploy-render.md](docs/deploy-render.md).
+
+Behind Render's proxy the backend needs `TRUST_PROXY=1` so each user gets their
+own rate-limit budget; the Blueprint already sets it.
+
 ## Troubleshooting
 
 | Symptom                                           | Fix                                                                                                   |
@@ -434,6 +446,7 @@ Backend settings (database, secrets, OTP mode, rate limits) are in
 | --------------------------------------------------------------------------------- | --------------------------------------------------------------- |
 | [backend/README.md](backend/README.md)                                            | Setup, env vars, every endpoint with examples, rules, state machine |
 | [mobile/README.md](mobile/README.md)                                              | Setup, emulator vs device, GetX usage, session flow, UI states  |
+| [docs/deploy-render.md](docs/deploy-render.md)                                    | Deploying the backend on Render with Atlas, then the release APK |
 | [docs/design-decisions.md](docs/design-decisions.md)                              | The eight key decisions and why, for explaining the project     |
 | [backend/docs/loan-calc.postman_collection.json](backend/docs/loan-calc.postman_collection.json) | Runnable collection of all 20 API calls          |
 | [design/README.md](design/README.md)                                              | Figma frames and design tokens                                  |

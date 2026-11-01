@@ -714,7 +714,7 @@
     {
       "key": "baseUrl",
       "value": "http://localhost:5000",
-      "description": "Server origin, without /api. Android emulator app uses http://10.0.2.2:5000, Postman uses localhost."
+      "description": "Server origin, without /api. Locally http://localhost:5000; after deploying, your Render URL (https://<service>.onrender.com)."
     },
     {
       "key": "phone",

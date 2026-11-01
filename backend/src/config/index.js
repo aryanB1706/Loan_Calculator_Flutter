@@ -15,6 +15,11 @@ const envSchema = Joi.object({
 
   CORS_ORIGIN: Joi.string().default('*'),
 
+  // How many reverse proxies (Render, Nginx, ...) sit in front of the app. Set 1
+  // behind a single proxy so rate limits use each caller's real IP instead of
+  // the proxy's. Leave 0 when the app is reached directly.
+  TRUST_PROXY: Joi.number().integer().min(0).default(0),
+
   // Optional in development/test so the rest of the API keeps working without
   // admin access. Required in production (checked below).
   ADMIN_API_KEY: Joi.string().min(16).optional(),
@@ -76,6 +81,7 @@ const config = Object.freeze({
   isTest: env.NODE_ENV === 'test',
   port: env.PORT,
   mongoUri: env.MONGO_URI,
+  trustProxy: env.TRUST_PROXY,
   corsOrigin: env.CORS_ORIGIN === '*' ? '*' : env.CORS_ORIGIN.split(',').map((o) => o.trim()),
   adminApiKey: env.ADMIN_API_KEY || null,
   jwt: {

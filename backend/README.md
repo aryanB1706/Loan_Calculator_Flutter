@@ -33,6 +33,13 @@ Every API call is also available as a Postman collection:
 Import it, run **Auth -> Send OTP** then **Verify OTP**, and the access token,
 refresh token and loan id are saved into collection variables automatically.
 
+## Deployment
+
+The backend deploys to Render with the [`render.yaml`](../render.yaml) Blueprint;
+see [docs/deploy-render.md](../docs/deploy-render.md). The one setting that
+matters behind a hosting proxy is `TRUST_PROXY=1`: without it every user appears
+to have the proxy's IP and shares a single rate-limit budget.
+
 ## Environment variables
 
 Copy `.env.example` to `.env`. Configuration is validated at startup, so a
@@ -44,6 +51,7 @@ missing or malformed value stops the server with a clear message.
 | `PORT`                          | `5000`        | HTTP port                                                    |
 | `MONGO_URI`                     | required      | `mongodb://...` or `mongodb+srv://...` (include the DB name) |
 | `CORS_ORIGIN`                   | `*`           | Comma separated allowed origins, or `*`                      |
+| `TRUST_PROXY`                   | `0`           | Reverse proxies in front of the app. Use `1` on Render       |
 | `ADMIN_API_KEY`                 | none          | 16+ chars, sent as `x-admin-api-key`. Required in production |
 | `JWT_ACCESS_SECRET`             | required      | 32+ random characters                                        |
 | `JWT_ACCESS_EXPIRES_IN`         | `15m`         | Access token lifetime                                        |

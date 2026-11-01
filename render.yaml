@@ -1,0 +1,46 @@
+# Render Blueprint for the backend API.
+#
+# Render: New + -> Blueprint -> pick this repository. It reads this file, asks
+# for the one secret it cannot invent (MONGO_URI), and deploys.
+# Full steps: docs/deploy-render.md
+services:
+  - type: web
+    name: credit-sea-api
+    runtime: node
+    rootDir: backend
+    plan: free
+    region: singapore # closest region to India; change if you prefer another
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      - key: NODE_VERSION
+        value: 20
+
+      # Demo deployment: NODE_ENV=development is what allows OTP_MODE=demo, so
+      # reviewers can sign in with 123456. The server refuses demo OTPs when
+      # NODE_ENV=production. For a real launch use production + OTP_MODE=sms.
+      - key: NODE_ENV
+        value: development
+      - key: OTP_MODE
+        value: demo
+
+      # Render puts one reverse proxy in front of the app. Without this every
+      # user shares the proxy's IP and therefore one rate-limit budget.
+      - key: TRUST_PROXY
+        value: "1"
+      - key: CORS_ORIGIN
+        value: "*"
+
+      # You paste this one in the Render dashboard (your Atlas connection string).
+      - key: MONGO_URI
+        sync: false
+
+      # Render generates strong random values; nothing secret is stored in git.
+      - key: JWT_ACCESS_SECRET
+        generateValue: true
+      - key: JWT_REFRESH_SECRET
+        generateValue: true
+      - key: ADMIN_API_KEY
+        generateValue: true

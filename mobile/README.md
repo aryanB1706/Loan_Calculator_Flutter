@@ -62,6 +62,9 @@ instead of silently calling `localhost`.
 flutter build apk --release --dart-define=API_BASE_URL=https://api.example.com
 ```
 
+To host the backend on Render first, follow
+[`../docs/deploy-render.md`](../docs/deploy-render.md).
+
 No keys or secrets are stored in the app. Tokens issued by the backend are kept
 in the platform's secure storage.
 
