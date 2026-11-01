@@ -26,12 +26,15 @@ With the backend in `OTP_MODE=demo`, every OTP is `123456`. The OTP screen then
 shows a small "Demo mode: use OTP 123456" hint; it appears only when the backend
 sends `demoOtp`, so it never shows against a real SMS setup.
 
-For a quick check in the browser (development only; Android and iOS are the
-real targets):
+To try it in the browser:
 
 ```bash
 flutter run -d chrome
 ```
+
+To publish it as a website, `flutter build web --release` and host the
+`build/web` folder; see [`../docs/deploy-web.md`](../docs/deploy-web.md). On a
+wide screen the app stays in a centred phone-width column (`PhoneFrame`).
 
 ## Backend URL
 

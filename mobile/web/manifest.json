@@ -1,11 +1,11 @@
 {
-    "name": "Loan App",
-    "short_name": "Loan App",
+    "name": "Credit Sea",
+    "short_name": "Credit Sea",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "Loan application mobile client.",
+    "background_color": "#0F4B92",
+    "theme_color": "#0F4B92",
+    "description": "Loan calculator, eligibility, application and repayment tracking.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

@@ -425,6 +425,13 @@ URL, free-tier cold starts) is in [docs/deploy-render.md](docs/deploy-render.md)
 Behind Render's proxy the backend needs `TRUST_PROXY=1` so each user gets their
 own rate-limit budget; the Blueprint already sets it.
 
+### Deploy the app as a website
+
+`flutter build web --release` turns the same app into a site that any browser can
+open; drag `mobile/build/web` onto [Netlify Drop](https://app.netlify.com/drop)
+and you get a public link. On a laptop it shows as a centred phone-width column.
+See [docs/deploy-web.md](docs/deploy-web.md).
+
 ## Troubleshooting
 
 | Symptom                                           | Fix                                                                                                   |
@@ -460,6 +467,7 @@ own rate-limit budget; the Blueprint already sets it.
 | [backend/README.md](backend/README.md)                                            | Setup, env vars, every endpoint with examples, rules, state machine |
 | [mobile/README.md](mobile/README.md)                                              | Setup, emulator vs device, GetX usage, session flow, UI states  |
 | [docs/deploy-render.md](docs/deploy-render.md)                                    | Deploying the backend on Render with Atlas, then the release APK |
+| [docs/deploy-web.md](docs/deploy-web.md)                                          | Building the Flutter app as a website and hosting it             |
 | [docs/design-decisions.md](docs/design-decisions.md)                              | The eight key decisions and why, for explaining the project     |
 | [backend/docs/loan-calc.postman_collection.json](backend/docs/loan-calc.postman_collection.json) | Runnable collection of all 20 API calls          |
 | [design/README.md](design/README.md)                                              | Figma frames and design tokens                                  |
