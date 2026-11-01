@@ -58,6 +58,7 @@ describe('POST /api/auth/send-otp', () => {
     expect(res.body.success).toBe(true);
     expect(res.body.data.phone).toBe(PHONE);
     expect(res.body.data.otp).toBeUndefined();
+    expect(res.body.data.demoOtp).toBeUndefined();
     expect(lastOtp).toMatch(/^\d{6}$/);
 
     const stored = await Otp.findOne({ phone: PHONE });

@@ -22,7 +22,9 @@ flutter pub get
 flutter run
 ```
 
-With the backend in `OTP_MODE=demo`, every OTP is `123456`.
+With the backend in `OTP_MODE=demo`, every OTP is `123456`. The OTP screen then
+shows a small "Demo mode: use OTP 123456" hint; it appears only when the backend
+sends `demoOtp`, so it never shows against a real SMS setup.
 
 For a quick check in the browser (development only; Android and iOS are the
 real targets):
@@ -196,6 +198,14 @@ flutter test
 Tests cover the API error mapping, formatters, model parsing, validators,
 session storage and routing, and controllers for auth, profile setup, loan
 apply, loan tracking and home (using fake repositories, no network).
+
+Regenerate the README screenshots (real screens, sample data, no device needed):
+
+```bash
+flutter test tool/screenshots_test.dart --update-goldens
+```
+
+It lives in `tool/`, so a normal `flutter test` never runs it.
 
 ## Design
 

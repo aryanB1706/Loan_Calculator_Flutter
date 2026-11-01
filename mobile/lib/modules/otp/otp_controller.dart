@@ -14,13 +14,17 @@ import 'otp_arguments.dart';
 class OtpController extends GetxController {
   OtpController(this._repository, this._session, OtpArguments arguments)
     : phone = arguments.phone,
-      _initialCooldown = arguments.resendAfterSeconds;
+      _initialCooldown = arguments.resendAfterSeconds,
+      demoOtp = arguments.demoOtp;
 
   final AuthRepository _repository;
   final SessionService _session;
   final int _initialCooldown;
 
   final String phone;
+
+  // Shown as a hint when the backend is in demo mode; null otherwise.
+  final String? demoOtp;
   final otpTextController = TextEditingController();
   final RxBool isLoading = false.obs;
   final RxInt secondsLeft = 0.obs;

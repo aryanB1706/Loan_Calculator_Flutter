@@ -48,7 +48,12 @@ class AppTheme {
           horizontal: 16,
           vertical: 16,
         ),
-        hintStyle: AppTextStyles.bodyLarge.copyWith(color: AppColors.textMuted),
+        // 14px so the longest hint ("Please enter your mobile no.") fits the
+        // phone field on a 390px-wide screen, as in the design.
+        hintStyle: AppTextStyles.bodyLarge.copyWith(
+          color: AppColors.textMuted,
+          fontSize: 14,
+        ),
         labelStyle: AppTextStyles.label,
         errorStyle: AppTextStyles.caption.copyWith(color: AppColors.error),
         border: _border(AppColors.border),

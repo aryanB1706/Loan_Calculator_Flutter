@@ -79,7 +79,10 @@ The same hashing, expiry, attempt limit and rate limiting apply in every mode.
 `OTP_MODE` selects how OTPs are delivered:
 
 - `demo`: the OTP is always `123456` and no SMS is sent. Intended for local app
-  testing. Rejected at startup when `NODE_ENV=production`.
+  testing. Rejected at startup when `NODE_ENV=production`. In this mode the
+  `send-otp` response also contains `"demoOtp": "123456"`, which the mobile app
+  uses to show a "Demo mode" hint on the OTP screen. No other mode ever returns
+  an OTP.
 - `console`: a random OTP is generated and printed in the server logs only.
   The API never returns the OTP.
 - `sms`: a random OTP is sent through the configured SMS provider
@@ -96,7 +99,13 @@ Successful responses use `{ "success": true, "message": "...", "data": ... }`.
 `send-otp` returns:
 
 ```json
-{ "phone": "9876543210", "expiresInSeconds": 300, "resendAfterSeconds": 30, "provider": "demo" }
+{
+  "phone": "9876543210",
+  "expiresInSeconds": 300,
+  "resendAfterSeconds": 30,
+  "provider": "demo",
+  "demoOtp": "123456"
+}
 ```
 
 `verify-otp` creates the user on first login and returns the session:

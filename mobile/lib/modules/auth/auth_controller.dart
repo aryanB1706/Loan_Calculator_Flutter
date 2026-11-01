@@ -54,6 +54,7 @@ class AuthController extends GetxController {
         arguments: OtpArguments(
           phone: phone,
           resendAfterSeconds: result.resendAfterSeconds,
+          demoOtp: result.demoOtp,
         ),
       );
     } on ApiException catch (error) {

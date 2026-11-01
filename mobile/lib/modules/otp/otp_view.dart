@@ -32,6 +32,7 @@ class OtpView extends GetView<OtpController> {
               enabled: !controller.isLoading.value,
             ),
           ),
+          _buildDemoHint(),
           Obx(() => _buildError(controller.errorMessage.value)),
           const SizedBox(height: 16),
           Obx(() => _buildResendRow()),
@@ -76,6 +77,21 @@ class OtpView extends GetView<OtpController> {
           const TextSpan(text: 'Verify OTP, Sent on '),
           TextSpan(text: controller.displayPhone, style: AppTextStyles.title),
         ],
+      ),
+    );
+  }
+
+  Widget _buildDemoHint() {
+    final demoOtp = controller.demoOtp;
+    if (demoOtp == null) {
+      return const SizedBox.shrink();
+    }
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 12),
+      child: Text(
+        'Demo mode: use OTP $demoOtp',
+        style: AppTextStyles.caption.copyWith(color: AppColors.error),
       ),
     );
   }

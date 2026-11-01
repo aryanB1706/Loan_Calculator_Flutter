@@ -33,6 +33,7 @@ describe('OTP_MODE=demo', () => {
     expect(sendRes.status).toBe(200);
     expect(sendRes.body.data.provider).toBe('demo');
     expect(sendRes.body.data.otp).toBeUndefined();
+    expect(sendRes.body.data.demoOtp).toBe('123456');
 
     const wrongRes = await request(app)
       .post('/api/auth/verify-otp')

@@ -75,6 +75,12 @@ async function sendOtp(rawPhone) {
     provider: delivery.provider,
   };
 
+  // The demo OTP is public and fixed, so the app may show it to testers. Real
+  // OTPs are never returned. Demo mode is refused in production at startup.
+  if (config.otp.mode === 'demo') {
+    response.demoOtp = DEMO_OTP;
+  }
+
   return response;
 }
 
