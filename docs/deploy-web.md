@@ -44,26 +44,26 @@ folder in again.
 
 ### Vercel
 
-Vercel has no drag-and-drop page, so it uses the CLI. Deploy the build folder
-itself, from inside it, so that `index.html` is at the top:
+Vercel has no drag-and-drop page, so it uses the CLI. Deploy a **copy of the
+build outside the git repository**: inside the repo the CLI offers to connect the
+Git repository, which would try to build the Flutter source on Vercel's servers
+(they have no Flutter SDK) and fail on every push.
 
 ```bash
-cd mobile/build/web
-npx vercel login          # once; opens the browser
-npx vercel --prod
+cp -r mobile/build/web /tmp/credit-sea-site
+cd /tmp/credit-sea-site
+npx vercel login                                  # once; opens the browser
+npx vercel link --yes --project credit-sea-app    # creates or reuses the project
+rm -f .env.local                                  # link writes a token file; never upload it
+npx vercel deploy --prod --yes
 ```
 
-Answer the prompts: set up and deploy `y`, link to an existing project `n`,
-project name `credit-sea-app`, code directory `./`, and keep the detected
-settings. It prints a production URL such as `https://credit-sea-app.vercel.app`.
+It prints the production URL, such as `https://credit-sea-app-mu.vercel.app`
+(Vercel adds a suffix when the name is taken). Use that address, not the long
+per-deployment one.
 
-Vercel's own build servers do not have the Flutter SDK, so connecting the Git
-repository will not work; always build locally and deploy `build/web`.
-
-To update: `flutter build web --release` again, then repeat the deploy from
-`mobile/build/web`. The build recreates that folder and can delete the
-`.vercel` link inside it, so when asked "Link to existing project?" answer `y`
-and pick the same project, or Vercel will create a second one.
+To update: `flutter build web --release`, then repeat the copy and the same
+commands; the link step reattaches the existing project.
 
 ### GitHub Pages
 

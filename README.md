@@ -14,8 +14,23 @@ API. The app talks to the real backend for everything; there is no mock data.
 ![MongoDB](https://img.shields.io/badge/MongoDB-Atlas%20%7C%20local-47A248?logo=mongodb&logoColor=white)
 ![State](https://img.shields.io/badge/State-GetX-8A2BE2)
 
+## Live demo
+
+| What             | Link                                                                              |
+| ---------------- | --------------------------------------------------------------------------------- |
+| Web app          | [credit-sea-app-mu.vercel.app](https://credit-sea-app-mu.vercel.app)              |
+| Backend API      | [credit-sea-api.onrender.com](https://credit-sea-api.onrender.com/api/health)     |
+| Postman requests | [`backend/docs/loan-calc.postman_collection.json`](backend/docs/loan-calc.postman_collection.json) |
+
+Sign in with any 10-digit mobile number starting with 6 to 9; the OTP is
+**`123456`** (demo mode, shown as a hint on the OTP screen). The backend runs on a
+free plan that sleeps when idle, so the very first request after a quiet period
+can take up to a minute; open the API link once first if the app shows "No
+internet connection".
+
 ## Contents
 
+- [Live demo](#live-demo)
 - [Screenshots](#screenshots)
 - [Highlights](#highlights)
 - [Requirement coverage](#requirement-coverage)
